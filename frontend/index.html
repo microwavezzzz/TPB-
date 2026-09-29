@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Jadwal TPB 44 ITERA 2026/2027</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            cream: {
+              50:  '#FFFBF7',
+              100: '#F9F5F0',
+              200: '#F2E8DA',
+              300: '#E8D5C0',
+              400: '#D4B896',
+              500: '#BFA080',
+              600: '#A08060',
+            },
+            cocoa: {
+              50:  '#F5EFE6',
+              100: '#EDE0D0',
+              200: '#D4B896',
+              300: '#B89070',
+              400: '#9A7050',
+              500: '#7C5C40',
+              600: '#5E4230',
+              700: '#3D2314',
+              800: '#261A12',
+              900: '#1C130D',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#7C5C40">
+</head>
+<body class="min-h-screen flex flex-col antialiased" style="background:#F5EFE6; color:#2C1A0E">
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-40 border-b border-[#E8D5C0]" style="background:#FFFBF7">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand -->
+      <div class="flex items-center gap-3 no-print">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-sm" style="background: linear-gradient(135deg, #7C5C40 0%, #C8956A 100%)">
+          T44
+        </div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg leading-tight flex items-center gap-2" style="color:#2C1A0E">
+            TPB 44 Schedule
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#F2E8DA; color:#7C5C40">
+              GASAL 26/27
+            </span>
+          </h1>
+          <p class="text-xs hidden sm:block" style="color:#8C7B6E">Institut Teknologi Sumatera</p>
+        </div>
+      </div>
+
+      <!-- Quick Search Student (Optional lookup) -->
+      <div class="relative flex-1 max-w-xs hidden lg:block no-print">
+        <i class="fas fa-search absolute left-3.5 top-3 text-xs" style="color:#B89070"></i>
+        <input type="text" id="studentSearchInput"
+          placeholder="Cari data teman kelas / NIM..."
+          class="w-full pl-9 pr-4 py-2 text-xs rounded-xl outline-none transition-all"
+          style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0"
+          onfocus="this.style.borderColor='#7C5C40'" onblur="this.style.borderColor='#E8D5C0'">
+        <div id="studentSearchResults" class="absolute left-0 right-0 top-11 border rounded-xl shadow-xl max-h-64 overflow-y-auto hidden z-50"
+          style="background:#FFFBF7; border-color:#E8D5C0"></div>
+      </div>
+
+      <!-- User Profile & Controls -->
+      <div class="flex items-center gap-2 no-print">
+        
+        <!-- User Badge & Menu -->
+        <div class="relative" id="userMenuWrapper">
+          <button id="userMenuBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-left" style="background:#F2E8DA; border-color:#E8D5C0">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white" style="background:#7C5C40" id="userAvatar">
+              U
+            </div>
+            <div class="hidden sm:block leading-tight">
+              <p class="text-xs font-bold max-w-[140px] truncate" id="userNameLabel" style="color:#2C1A0E">Memuat...</p>
+              <p class="text-[10px] font-semibold" id="userRoleBadge" style="color:#7C5C40">Member</p>
+            </div>
+            <i class="fas fa-chevron-down text-[10px] ml-1" style="color:#8C7B6E"></i>
+          </button>
+
+          <!-- Dropdown Profile Menu -->
+          <div id="userDropdownMenu" class="absolute right-0 top-full mt-2 w-56 rounded-2xl p-2 shadow-2xl border hidden z-50 space-y-1" style="background:#FFFBF7; border-color:#E8D5C0">
+            <div class="p-2 border-b border-[#E8D5C0] text-xs">
+              <p class="font-bold truncate" id="menuFullName" style="color:#2C1A0E">Nama Lengkap</p>
+              <p class="text-[11px]" id="menuNimProdi" style="color:#8C7B6E">NIM • Prodi</p>
+            </div>
+
+            <button onclick="TPBApp.openChangePasswordModal()" class="w-full text-left px-3 py-2 text-xs font-medium rounded-xl hover:bg-[#F2E8DA] flex items-center gap-2 transition-colors" style="color:#5E4230">
+              <i class="fas fa-key text-[11px]" style="color:#7C5C40"></i>
+              <span>Ganti Password</span>
+            </button>
+
+            <button id="superAdminBtn" onclick="TPBApp.openUserManagementModal()" class="w-full text-left px-3 py-2 text-xs font-medium rounded-xl hover:bg-[#F2E8DA] flex items-center gap-2 transition-colors hidden" style="color:#5E4230">
+              <i class="fas fa-users-cog text-[11px]" style="color:#7C5C40"></i>
+              <span>Kelola User & Admin</span>
+            </button>
+
+            <div class="border-t border-[#E8D5C0] pt-1">
+              <button onclick="Auth.logout()" class="w-full text-left px-3 py-2 text-xs font-bold rounded-xl hover:bg-rose-50 text-rose-600 flex items-center gap-2 transition-colors">
+                <i class="fas fa-sign-out-alt text-[11px]"></i>
+                <span>Keluar / Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button id="themeToggleBtn" class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+          style="background:#F2E8DA; color:#5E4230" title="Ganti Tema">
+          <i class="fas fa-moon dark:hidden text-sm"></i>
+          <i class="fas fa-sun hidden dark:inline text-sm" style="color:#C8956A"></i>
+        </button>
+
+      </div>
+
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
+
+    <!-- Announcements from Admin (Pinned Banner) -->
+    <div id="announcementsBanner" class="space-y-2"></div>
+
+    <!-- Live Class Status Banner -->
+    <div id="liveClassBanner"></div>
+
+    <!-- Conflict Warning Alert Banner -->
+    <div id="conflictAlertBanner" class="p-4 rounded-2xl hidden" style="background:#FFF0EE; border:1px solid #E8B8B0; color:#8B1A1A"></div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center gap-1 overflow-x-auto no-print pb-1" style="border-bottom:2px solid #E8D5C0">
+      <button data-tab="schedule" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 flex items-center gap-2 whitespace-nowrap transition-all"
+        style="border-color:#7C5C40; color:#7C5C40">
+        <i class="fas fa-calendar-alt"></i> Jadwal TPB 44
+      </button>
+      <button data-tab="core" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
+        style="color:#8C7B6E">
+        <i class="fas fa-graduation-cap"></i> Core Prodi
+      </button>
+      <button data-tab="students" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
+        style="color:#8C7B6E">
+        <i class="fas fa-users"></i> Anggota Kelas
+      </button>
+      <button data-tab="tasks" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
+        style="color:#8C7B6E">
+        <i class="fas fa-tasks"></i> Tugas & Deadline
+      </button>
+      <button data-tab="rooms" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
+        style="color:#8C7B6E">
+        <i class="fas fa-door-open"></i> Cek Ruangan
+      </button>
+      <button data-tab="lecturers" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
+        style="color:#8C7B6E">
+        <i class="fas fa-chalkboard-teacher"></i> Jadwal Dosen
+      </button>
+    </div>
+
+    <!-- TAB 1: SCHEDULE -->
+    <section id="tab_schedule" class="tab-content space-y-4">
+
+      <!-- Action Toolbar -->
+      <div class="glass-card dropdown-toolbar-box p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 no-print">
+
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Class & Core Dropdowns -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold uppercase" style="color:#8C7B6E">Kelas:</label>
+            <div id="classSelectDropdownContainer"></div>
+          </div>
+          <div id="coreProdiDropdownContainer"></div>
+          
+          <div>
+            <h2 id="headerClassTitle" class="font-bold text-sm sm:text-base flex items-center gap-2" style="color:#2C1A0E">
+              <span>Jadwal TPB 44</span>
+              <span id="adminLiveTag" class="text-[10px] font-bold px-2 py-0.5 rounded-full hidden" style="background:#EDE0D0; color:#5E4230">
+                ⭐ Terpusat & Sinkron
+              </span>
+            </h2>
+            <p id="totalCoursesCount" class="text-xs" style="color:#8C7B6E">Memuat data...</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          
+          <!-- View Switcher -->
+          <div class="flex items-center p-1 rounded-xl" style="background:#F2E8DA">
+            <button data-view="table" class="view-btn px-2.5 py-1 text-xs font-bold rounded-lg text-white transition-all" style="background:#7C5C40" title="Tabel Bersih">
+              <i class="fas fa-table mr-1"></i> Tabel
+            </button>
+            <button data-view="grid" class="view-btn px-2.5 py-1 text-xs font-bold rounded-lg transition-all" style="color:#5E4230" title="Grid Mingguan">
+              <i class="fas fa-th-large mr-1"></i> Grid
+            </button>
+            <button data-view="today" class="view-btn px-2.5 py-1 text-xs font-bold rounded-lg transition-all" style="color:#5E4230" title="Hari Ini">
+              <i class="fas fa-calendar-day mr-1"></i> Hari Ini
+            </button>
+          </div>
+
+          <!-- Admin Quick Action Buttons -->
+          <div id="adminActionGroup" class="flex items-center gap-1.5 hidden">
+            <button onclick="TPBApp.openAnnouncementModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 text-white shadow-sm" style="background:#7C5C40" title="Buat pengumuman untuk seluruh kelas">
+              <i class="fas fa-bullhorn"></i> Pengumuman
+            </button>
+            <button id="addClassBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1" style="background:#F2E8DA; color:#5E4230" title="Tambah mata kuliah / responsi baru">
+              <i class="fas fa-plus"></i> Tambah Matkul
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button id="exportIcsBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1" style="background:#F2E8DA; color:#5E4230" title="Download ke Google Calendar">
+              <i class="fas fa-calendar-plus" style="color:#7C5C40"></i> .ICS
+            </button>
+            <button id="exportWallpaperBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1" style="background:#F2E8DA; color:#5E4230" title="Wallpaper Lockscreen">
+              <i class="fas fa-mobile-alt" style="color:#A08060"></i> Wallpaper
+            </button>
+            <button id="printBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold" style="background:#F2E8DA; color:#5E4230" title="Cetak / PDF 1 Halaman">
+              <i class="fas fa-print"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule Dynamic View Container -->
+      <div id="scheduleViewContainer" class="min-h-[300px]"></div>
+    </section>
+
+    <!-- TAB 2: CORE PRODI -->
+    <section id="tab_core" class="tab-content hidden space-y-4">
+      <div id="coreCatalogContainer"></div>
+    </section>
+
+    <!-- TAB 3: CLASSMATES -->
+    <section id="tab_students" class="tab-content hidden space-y-4">
+      <div id="classmatesListContainer"></div>
+    </section>
+
+    <!-- TAB 4: TASKS -->
+    <section id="tab_tasks" class="tab-content hidden space-y-4">
+      <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-base" style="color:#2C1A0E">Tugas & Deadline TPB 44</h3>
+          <p class="text-xs" style="color:#8C7B6E">Tugas resmi dari Ketua Kelas & PJ Matkul, serta catatan tugas pribadi.</p>
+        </div>
+        <button onclick="TPBApp.openAddTaskModal()" class="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-sm" style="background:#7C5C40">
+          <i class="fas fa-plus"></i> <span id="addTaskBtnLabel">Tambah Tugas</span>
+        </button>
+      </div>
+      <div id="tasksListContainer"></div>
+    </section>
+
+    <!-- TAB 5: ROOMS -->
+    <section id="tab_rooms" class="tab-content hidden space-y-4">
+      <div class="glass-card p-4 rounded-2xl space-y-3">
+        <h3 class="font-bold text-base" style="color:#2C1A0E">Cek Ketersediaan Ruangan</h3>
+        <p class="text-xs" style="color:#8C7B6E">Cari nama ruangan kuliah/lab untuk melihat jadwal pemakaian.</p>
+        <div class="flex flex-wrap items-center gap-3">
+          <div id="roomSelectDropdownContainer" class="flex-1 min-w-[240px]"></div>
+          <button onclick="TPBApp.searchRoomSchedule()" class="px-4 py-2 rounded-xl text-white text-xs font-bold" style="background:#7C5C40">
+            <i class="fas fa-search mr-1"></i> Tampilkan Jadwal
+          </button>
+        </div>
+      </div>
+      <div id="roomResultsContainer"></div>
+    </section>
+
+    <!-- TAB 6: LECTURERS -->
+    <section id="tab_lecturers" class="tab-content hidden space-y-4">
+      <div class="glass-card p-4 rounded-2xl space-y-3">
+        <h3 class="font-bold text-base" style="color:#2C1A0E">Pencarian Jadwal Mengajar Dosen</h3>
+        <p class="text-xs" style="color:#8C7B6E">Ketik nama dosen pengampu untuk melihat jadwal mengajar.</p>
+        <div class="flex items-center gap-3">
+          <input type="text" id="lecturerSearchInput" placeholder="Ketik nama dosen..."
+            class="flex-1 px-3.5 py-2 text-xs rounded-xl outline-none"
+            style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+          <button onclick="TPBApp.searchLecturerSchedule()" class="px-4 py-2 rounded-xl text-white text-xs font-bold" style="background:#7C5C40">
+            <i class="fas fa-search mr-1"></i> Cari
+          </button>
+        </div>
+      </div>
+      <div id="lecturerResultsContainer"></div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Edit Schedule (Admin only) -->
+  <div id="editScheduleModal" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4">
+    <div class="max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-4" style="background:#FFFBF7; border:1px solid #E8D5C0">
+      <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid #E8D5C0">
+        <div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:#F2E8DA; color:#7C5C40">EDIT JADWAL KELAS (ADMIN)</span>
+          <h3 id="editCourseTitle" class="font-bold text-base mt-1" style="color:#2C1A0E">Nama Matkul</h3>
+        </div>
+        <button onclick="TPBApp.closeEditModal()" class="text-xl font-bold" style="color:#B89070">&times;</button>
+      </div>
+      <div id="editConflictWarning" class="p-3 rounded-xl text-xs hidden" style="background:#FFF0EE; border:1px solid #E8B8B0; color:#8B1A1A"></div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Hari Kuliah</label>
+          <select id="editDay" onchange="TPBApp.updateModalConflictPreview()" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+            <option>Senin</option><option>Selasa</option><option>Rabu</option>
+            <option>Kamis</option><option>Jumat</option><option>Sabtu</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Pilih Jam Cepat (24 Jam)</label>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <button type="button" onclick="TPBApp.setTimePreset('editStartTime','editEndTime','07:30','09:10')" class="time-chip">07:30 - 09:10</button>
+            <button type="button" onclick="TPBApp.setTimePreset('editStartTime','editEndTime','08:00','09:40')" class="time-chip">08:00 - 09:40</button>
+            <button type="button" onclick="TPBApp.setTimePreset('editStartTime','editEndTime','09:20','11:00')" class="time-chip">09:20 - 11:00</button>
+            <button type="button" onclick="TPBApp.setTimePreset('editStartTime','editEndTime','10:20','12:00')" class="time-chip">10:20 - 12:00</button>
+            <button type="button" onclick="TPBApp.setTimePreset('editStartTime','editEndTime','13:00','14:40')" class="time-chip">13:00 - 14:40</button>
+            <button type="button" onclick="TPBApp.setTimePreset('editStartTime','editEndTime','15:00','16:40')" class="time-chip">15:00 - 16:40</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold mb-1" style="color:#5E4230">Jam Mulai</label>
+            <input type="text" id="editStartTime" placeholder="13:00" maxlength="5" oninput="TPBApp.updateModalConflictPreview()"
+              class="w-full px-3 py-2 rounded-xl font-mono font-bold outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+          </div>
+          <div>
+            <label class="block font-bold mb-1" style="color:#5E4230">Jam Selesai</label>
+            <input type="text" id="editEndTime" placeholder="14:40" maxlength="5" oninput="TPBApp.updateModalConflictPreview()"
+              class="w-full px-3 py-2 rounded-xl font-mono font-bold outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Ruangan</label>
+          <input type="text" id="editRoom" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Dosen Pengampu</label>
+          <input type="text" id="editLecturer" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Link WA / Classroom</label>
+          <input type="url" id="editLink" placeholder="https://chat.whatsapp.com/..." class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Catatan Admin (Alasan diundur / info khusus)</label>
+          <input type="text" id="editNote" placeholder="Contoh: Kuliah diundur atas permintaan dosen" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+      </div>
+      <div class="flex items-center justify-between pt-3" style="border-top:1px solid #E8D5C0">
+        <button onclick="TPBApp.deleteScheduleItem()" class="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
+          <i class="fas fa-trash-alt mr-1"></i> Hapus dari Jadwal
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="TPBApp.closeEditModal()" class="px-4 py-2 rounded-xl text-xs font-bold" style="background:#F2E8DA; color:#5E4230">Batal</button>
+          <button onclick="TPBApp.saveEditedSchedule()" class="px-4 py-2 rounded-xl text-white text-xs font-bold shadow-sm" style="background:#7C5C40">Simpan untuk Semua</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Custom Class (Admin only) -->
+  <div id="addClassModal" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4">
+    <div class="max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-4" style="background:#FFFBF7; border:1px solid #E8D5C0">
+      <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid #E8D5C0">
+        <h3 class="font-bold text-base" style="color:#2C1A0E">Tambah Jadwal Tambahan (Admin)</h3>
+        <button onclick="TPBApp.closeAddClassModal()" class="text-xl font-bold" style="color:#B89070">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Nama Mata Kuliah / Responsi</label>
+          <input type="text" id="newCourseName" placeholder="Contoh: Responsi Fisika Dasar" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold mb-1" style="color:#5E4230">Kategori</label>
+            <select id="newCategory" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+              <option value="Kuliah">Kuliah</option>
+              <option value="Praktikum">Praktikum</option>
+              <option value="Core Prodi">Core Prodi</option>
+              <option value="Responsi">Responsi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1" style="color:#5E4230">Hari</label>
+            <select id="newDay" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+              <option>Senin</option><option>Selasa</option><option>Rabu</option>
+              <option>Kamis</option><option>Jumat</option><option>Sabtu</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold mb-1" style="color:#5E4230">Jam Mulai</label>
+            <input type="text" id="newStartTime" value="08:00" maxlength="5" class="w-full px-3 py-2 rounded-xl font-mono font-bold outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+          </div>
+          <div>
+            <label class="block font-bold mb-1" style="color:#5E4230">Jam Selesai</label>
+            <input type="text" id="newEndTime" value="09:40" maxlength="5" class="w-full px-3 py-2 rounded-xl font-mono font-bold outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Ruangan (Opsional)</label>
+          <input type="text" id="newRoom" placeholder="GK1.106 atau Online" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Dosen / Asprak</label>
+          <input type="text" id="newLecturer" placeholder="Tim Dosen / Asprak" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-3" style="border-top:1px solid #E8D5C0">
+        <button onclick="TPBApp.closeAddClassModal()" class="px-4 py-2 rounded-xl text-xs font-bold" style="background:#F2E8DA; color:#5E4230">Batal</button>
+        <button onclick="TPBApp.saveNewClass()" class="px-4 py-2 rounded-xl text-white text-xs font-bold" style="background:#7C5C40">Tambahkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Task (Admin creates class-wide task, Member creates personal task) -->
+  <div id="addTaskModal" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4">
+    <div class="max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-4" style="background:#FFFBF7; border:1px solid #E8D5C0">
+      <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid #E8D5C0">
+        <div>
+          <span id="taskModalScopeBadge" class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:#F2E8DA; color:#7C5C40">TUGAS PRIBADI</span>
+          <h3 class="font-bold text-base mt-1" style="color:#2C1A0E">Tambah Catatan Tugas / Deadline</h3>
+        </div>
+        <button onclick="TPBApp.closeAddTaskModal()" class="text-xl font-bold" style="color:#B89070">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Judul Tugas / Laporan</label>
+          <input type="text" id="taskTitle" placeholder="Contoh: Laporan Praktikum Fisika Modul 2" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Mata Kuliah</label>
+          <input type="text" id="taskCourse" placeholder="Fisika Dasar / Matematika" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Tenggat Waktu</label>
+          <input type="datetime-local" id="taskDeadline" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Catatan Tambahan</label>
+          <textarea id="taskNotes" rows="2" placeholder="Format PDF, submit di Google Classroom..." class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-3" style="border-top:1px solid #E8D5C0">
+        <button onclick="TPBApp.closeAddTaskModal()" class="px-4 py-2 rounded-xl text-xs font-bold" style="background:#F2E8DA; color:#5E4230">Batal</button>
+        <button onclick="TPBApp.saveTask()" class="px-4 py-2 rounded-xl text-white text-xs font-bold" style="background:#7C5C40">Simpan Tugas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Create Announcement (Admin only) -->
+  <div id="announcementModal" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4">
+    <div class="max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-4" style="background:#FFFBF7; border:1px solid #E8D5C0">
+      <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid #E8D5C0">
+        <h3 class="font-bold text-base" style="color:#2C1A0E">Buat Pengumuman Kelas TPB 44</h3>
+        <button onclick="TPBApp.closeAnnouncementModal()" class="text-xl font-bold" style="color:#B89070">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Judul Pengumuman</label>
+          <input type="text" id="annTitle" placeholder="Contoh: Info Kuliah Pengganti Matematika" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Isi Pengumuman</label>
+          <textarea id="annContent" rows="4" placeholder="Tuliskan informasi penting untuk seluruh anggota kelas..." class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0"></textarea>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="annPinned" class="rounded text-[#7C5C40]">
+          <label for="annPinned" class="font-medium cursor-pointer" style="color:#5E4230">Sematkan di bagian paling atas (Pin)</label>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-3" style="border-top:1px solid #E8D5C0">
+        <button onclick="TPBApp.closeAnnouncementModal()" class="px-4 py-2 rounded-xl text-xs font-bold" style="background:#F2E8DA; color:#5E4230">Batal</button>
+        <button onclick="TPBApp.saveAnnouncement()" class="px-4 py-2 rounded-xl text-white text-xs font-bold" style="background:#7C5C40">Siarkan Pengumuman</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Change Password -->
+  <div id="changePasswordModal" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4">
+    <div class="max-w-md w-full rounded-3xl p-6 shadow-2xl space-y-4" style="background:#FFFBF7; border:1px solid #E8D5C0">
+      <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid #E8D5C0">
+        <h3 class="font-bold text-base" style="color:#2C1A0E">Ganti Password Akun</h3>
+        <button onclick="TPBApp.closeChangePasswordModal()" class="text-xl font-bold" style="color:#B89070">&times;</button>
+      </div>
+      <div id="changePwMsg" class="p-3 rounded-xl text-xs hidden"></div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Password Lama (Default = NIM)</label>
+          <input type="password" id="oldPwInput" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Password Baru (Minimal 6 karakter)</label>
+          <input type="password" id="newPwInput" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-3" style="border-top:1px solid #E8D5C0">
+        <button onclick="TPBApp.closeChangePasswordModal()" class="px-4 py-2 rounded-xl text-xs font-bold" style="background:#F2E8DA; color:#5E4230">Batal</button>
+        <button onclick="TPBApp.submitChangePassword()" class="px-4 py-2 rounded-xl text-white text-xs font-bold" style="background:#7C5C40">Ubah Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Super Admin User Management -->
+  <div id="userManagementModal" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4">
+    <div class="max-w-2xl w-full rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col" style="background:#FFFBF7; border:1px solid #E8D5C0">
+      <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid #E8D5C0">
+        <div>
+          <h3 class="font-bold text-base" style="color:#2C1A0E">Kelola Role User & Admin</h3>
+          <p class="text-xs" style="color:#8C7B6E">Atur ketua kelas & penanggung jawab matkul menjadi Admin</p>
+        </div>
+        <button onclick="TPBApp.closeUserManagementModal()" class="text-xl font-bold" style="color:#B89070">&times;</button>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <input type="text" id="userFilterInput" oninput="TPBApp.filterUserList()" placeholder="Cari NIM atau Nama Mahasiswa..."
+          class="flex-1 px-3.5 py-2 text-xs rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+      </div>
+
+      <div id="userListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-[250px]">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-auto py-5 text-center text-xs no-print" style="border-top:1px solid #E8D5C0; color:#B89070">
+    <p>Portal Jadwal TPB 44 Gasal TA 2026/2027 · Institut Teknologi Sumatera</p>
+    <p class="mt-1 text-[11px]">Terintegrasi akun mahasiswa dengan peran Ketua Kelas & Penanggung Jawab Mata Kuliah.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/searchable_dropdown.js"></script>
+  <script src="/static/js/conflict.js"></script>
+  <script src="/static/js/tasks.js"></script>
+  <script src="/static/js/calendar.js"></script>
+  <script src="/static/js/search_tools.js"></script>
+  <script src="/static/js/exporter.js?v=2"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

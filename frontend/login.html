@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Mahasiswa & Admin — TPB 44 ITERA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <meta name="theme-color" content="#7C5C40">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4" style="background:#F5EFE6; color:#2C1A0E">
+
+  <div class="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-xl space-y-6" style="background:#FFFBF7; border:1px solid #E8D5C0">
+    
+    <!-- Header -->
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-md" style="background: linear-gradient(135deg, #7C5C40 0%, #C8956A 100%)">
+        T44
+      </div>
+      <h2 class="text-xl sm:text-2xl font-bold tracking-tight" style="color:#2C1A0E">Portal Jadwal TPB 44</h2>
+      <p class="text-xs" style="color:#8C7B6E">Tahap Persiapan Bersama • Institut Teknologi Sumatera</p>
+    </div>
+
+    <!-- Alert / Notice Box -->
+    <div class="p-3.5 rounded-2xl text-xs space-y-1" style="background:#F2E8DA; border:1px solid #E8D5C0; color:#5E4230">
+      <div class="flex items-center gap-1.5 font-bold">
+        <i class="fas fa-info-circle" style="color:#7C5C40"></i>
+        <span>Informasi Akun Mahasiswa</span>
+      </div>
+      <p class="text-[11px] leading-relaxed" style="color:#8C7B6E">
+        Gunakan <strong>NIM</strong> Anda. Untuk login pertama kali, <strong>Password default = NIM</strong> kamu sendiri.
+      </p>
+    </div>
+
+    <!-- Error message display -->
+    <div id="loginError" class="p-3 rounded-xl text-xs hidden" style="background:#FFF0EE; border:1px solid #E8B8B0; color:#8B1A1A"></div>
+
+    <!-- Form -->
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label for="nimInput" class="block text-xs font-bold mb-1.5 uppercase tracking-wider" style="color:#5E4230">NIM (Nomor Induk Mahasiswa)</label>
+        <div class="relative">
+          <i class="fas fa-id-card absolute left-3.5 top-3 text-xs" style="color:#B89070"></i>
+          <input 
+            type="text" 
+            id="nimInput" 
+            required 
+            placeholder="Contoh: 126140044" 
+            class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm font-semibold rounded-xl outline-none transition-all"
+            style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0"
+            onfocus="this.style.borderColor='#7C5C40'" onblur="this.style.borderColor='#E8D5C0'"
+          >
+        </div>
+      </div>
+
+      <div>
+        <label for="passwordInput" class="block text-xs font-bold mb-1.5 uppercase tracking-wider" style="color:#5E4230">Password</label>
+        <div class="relative">
+          <i class="fas fa-lock absolute left-3.5 top-3 text-xs" style="color:#B89070"></i>
+          <input 
+            type="password" 
+            id="passwordInput" 
+            required 
+            placeholder="Password (Default: NIM kamu)" 
+            class="w-full pl-9 pr-10 py-2.5 text-xs sm:text-sm font-semibold rounded-xl outline-none transition-all"
+            style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0"
+            onfocus="this.style.borderColor='#7C5C40'" onblur="this.style.borderColor='#E8D5C0'"
+          >
+          <button type="button" id="togglePasswordBtn" class="absolute right-3.5 top-2.5 text-xs text-slate-400 hover:text-slate-600">
+            <i class="fas fa-eye" id="toggleEyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        id="submitBtn" 
+        class="w-full py-2.5 px-4 rounded-xl text-white text-xs sm:text-sm font-bold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2"
+        style="background:#7C5C40"
+      >
+        <i class="fas fa-sign-in-alt"></i>
+        <span>Masuk ke Portal TPB 44</span>
+      </button>
+    </form>
+
+    <!-- Footer info -->
+    <div class="pt-4 border-t border-[#E8D5C0] text-center text-[11px]" style="color:#8C7B6E">
+      <p>Data terintegrasi otomatis dengan pembagian kelas & core prodi TPB Gasal 2026/2027.</p>
+    </div>
+
+  </div>
+
+  <script src="/static/js/auth.js"></script>
+  <script>
+    // Toggle Password Visibility
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const passwordInput = document.getElementById('passwordInput');
+    const toggleEyeIcon = document.getElementById('toggleEyeIcon');
+
+    toggleBtn.addEventListener('click', () => {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleEyeIcon.classList.remove('fa-eye');
+        toggleEyeIcon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleEyeIcon.classList.remove('fa-eye-slash');
+        toggleEyeIcon.classList.add('fa-eye');
+      }
+    });
+
+    // Check if already logged in
+    if (Auth.isLoggedIn()) {
+      window.location.href = '/';
+    }
+
+    const loginForm = document.getElementById('loginForm');
+    const nimInput = document.getElementById('nimInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorBox = document.getElementById('loginError');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Memverifikasi...</span>';
+
+      try {
+        const res = await Auth.login(nimInput.value, passwordInput.value);
+        window.location.href = '/';
+      } catch (err) {
+        errorBox.textContent = err.message || 'Login gagal. Periksa kembali NIM dan password Anda.';
+        errorBox.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>Masuk ke Portal TPB 44</span>';
+      }
+    });
+  </script>
+</body>
+</html>
