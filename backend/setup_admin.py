@@ -56,7 +56,7 @@ def setup_admin():
             user.prodi = prodi
             user.password_hash = hash_password(password_to_hash)
             session.commit()
-            print(f"✅ User {nim} ({name}) berhasil diperbarui menjadi {role.upper()}!")
+            print(f"[OK] User {nim} ({name}) berhasil diperbarui menjadi {role.upper()}!")
         else:
             new_user = User(
                 nim=nim,
@@ -68,7 +68,7 @@ def setup_admin():
             )
             session.add(new_user)
             session.commit()
-            print(f"✅ User {nim} ({name}) berhasil didaftarkan sebagai {role.upper()}!")
+            print(f"[OK] User {nim} ({name}) berhasil didaftarkan sebagai {role.upper()}!")
 
     print(f"\nInfo Login:")
     print(f"NIM      : {nim}")

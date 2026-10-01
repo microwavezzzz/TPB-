@@ -66,24 +66,72 @@ def get_full_schedule():
 @app.get("/api/class/{class_name}")
 def get_class_schedule(class_name: str):
     """
-    Jadwal kelas dengan override dari admin sudah digabung.
-    Admin edit → semua member langsung lihat perubahan saat refresh.
+    Jadwal kelas terpadu (Jadwal umum + Core Prodi Kelas A/B/C) secara default,
+    dengan override dari admin sudah digabung.
     """
     data = load_data()
     clean_target = class_name.strip().upper()
 
+    # 1. Jadwal umum kelas TPB
     raw_schedules = []
     for item in data.get("schedules", []):
         c_name = (item.get("class_name") or "").strip().upper()
-        if c_name == clean_target or c_name == f"TPB {clean_target}" or clean_target in c_name:
-            raw_schedules.append(item)
+        sheet = (item.get("sheet") or "").upper()
+        if sheet != "CORE PRODI":
+            if c_name == clean_target or c_name == f"TPB {clean_target}" or clean_target in c_name:
+                raw_schedules.append(dict(item))
 
-    # Apply admin overrides
+    # 2. Satukan Jadwal Core Prodi terkait (A/B/C) secara default
+    students_in_class = [
+        s for s in data.get("students", [])
+        if (s.get("tpb_class") or "").strip().upper() == clean_target
+        or (s.get("tpb_class") or "").strip().upper() == f"TPB {clean_target}"
+    ]
+
+    class_prodis = set(s.get("prodi", "").strip().lower() for s in students_in_class if s.get("prodi"))
+    core_classes_in_students = set(
+        s.get("core2", "").strip().upper() for s in students_in_class if s.get("core2")
+    )
+
+    core_prodi_schedules = []
+    for item in data.get("schedules", []):
+        if item.get("sheet") == "CORE PRODI":
+            p_item = (item.get("prodi") or "").lower()
+            core_cls = (item.get("core_class") or "").strip().upper()
+
+            # Cocokkan dengan prodi anggota kelas
+            is_matching_prodi = any((cp in p_item or p_item in cp) for cp in class_prodis if cp)
+            if is_matching_prodi:
+                # Untuk Sains Data di TPB 44, kelas A, B, C
+                if "sains data" in p_item and core_cls in ("A", "B", "C"):
+                    c_item = dict(item)
+                    c_item["is_core_prodi"] = True
+                    c_item["core_class"] = core_cls
+                    c_item["display_core_type"] = f"Kelas {core_cls}"
+                    core_prodi_schedules.append(c_item)
+                # Untuk Teknik Sistem Energi di TPB 44, kelas A, B
+                elif "energi" in p_item and core_cls in ("A", "B"):
+                    c_item = dict(item)
+                    c_item["is_core_prodi"] = True
+                    c_item["core_class"] = core_cls
+                    c_item["display_core_type"] = f"Kelas {core_cls}"
+                    core_prodi_schedules.append(c_item)
+                elif not class_prodis:
+                    # Fallback jika kelas non-TPB
+                    c_item = dict(item)
+                    c_item["is_core_prodi"] = True
+                    c_item["core_class"] = core_cls
+                    c_item["display_core_type"] = f"Kelas {core_cls}" if core_cls else "Core"
+                    core_prodi_schedules.append(c_item)
+
+    all_raw = raw_schedules + core_prodi_schedules
+
+    # 3. Terapkan override dari admin SQLite
     overrides = get_all_overrides_for_class(clean_target)
     deleted_ids = get_deleted_schedule_ids(clean_target)
 
     merged = []
-    for item in raw_schedules:
+    for item in all_raw:
         sid = item.get("id", "")
         if sid in deleted_ids:
             continue  # Admin hapus jadwal ini
@@ -101,6 +149,8 @@ def get_class_schedule(class_name: str):
         "class_name": class_name,
         "count": len(merged),
         "schedules": merged,
+        "core_types_available": sorted(list(set(c["core_class"] for c in core_prodi_schedules if c.get("core_class")))),
+        "prodis_available": sorted(list(set(s.get("prodi") for s in students_in_class if s.get("prodi")))),
         "admin_tasks": get_admin_tasks_for_class(clean_target),
         "announcements": get_announcements_for_class(clean_target),
     }

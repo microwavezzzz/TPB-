@@ -46,7 +46,9 @@ const TPBApp = {
     conflicts: new Map(),
     adminTasks: [],
     announcements: [],
-    allUsers: []
+    allUsers: [],
+    coreFilter: 'ALL',
+    classSchedules: []
   },
 
   dropdownInstances: {},
@@ -71,6 +73,22 @@ const TPBApp = {
     await this.refreshClassData();
     this.render();
     this.startLiveTicker();
+  },
+
+  setCoreFilter(val) {
+    this.data.coreFilter = val;
+    document.querySelectorAll('.core-filter-btn').forEach(btn => {
+      btn.style.background = 'transparent';
+      btn.style.color = '#5E4230';
+      btn.classList.remove('text-white', 'shadow-sm');
+    });
+    const activeBtn = document.getElementById(`filterCoreBtn_${val}`);
+    if (activeBtn) {
+      activeBtn.style.background = '#7C5C40';
+      activeBtn.style.color = '#FFFBF7';
+      activeBtn.classList.add('text-white', 'shadow-sm');
+    }
+    this.render();
   },
 
   renderUserProfileHeader() {
@@ -178,13 +196,29 @@ const TPBApp = {
         this.data.adminTasks = json.admin_tasks || [];
         this.data.announcements = json.announcements || [];
         
-        // Update schedules for current class with admin overrides
-        const mergedSchedules = json.schedules || [];
-        // Update in masterSchedule
+        // Simpan seluruh jadwal gabungan (Umum + Core Prodi) dari backend
+        this.data.classSchedules = (json.schedules || []).map(item => ({
+          ...item,
+          start_time: format24h(item.start_time),
+          end_time: format24h(item.end_time)
+        }));
+
+        // Perbarui juga di masterSchedule agar sinkron dengan komponen lain
         this.data.masterSchedule = this.data.masterSchedule.map(s => {
-          const found = mergedSchedules.find(m => m.id === s.id);
+          const found = this.data.classSchedules.find(m => m.id === s.id);
           return found ? { ...s, ...found } : s;
         });
+
+        // Tampilkan filter bar tipe kelas Core jika kelas memiliki Core Prodi
+        const filterBar = document.getElementById('coreProdiFilterBar');
+        if (filterBar) {
+          const hasCore = this.data.classSchedules.some(s => s.is_core_prodi || s.category === 'Core Prodi');
+          if (hasCore) {
+            filterBar.classList.remove('hidden');
+          } else {
+            filterBar.classList.add('hidden');
+          }
+        }
       }
     } catch (e) {
       console.error('Error refreshing class data:', e);
@@ -310,11 +344,17 @@ const TPBApp = {
 
   getActiveSchedule() {
     const currentClass = this.data.currentClass.trim().toUpperCase();
-    
-    let rawItems = this.data.masterSchedule.filter(item => {
-      const c = (item.class_name || '').trim().toUpperCase();
-      return c === currentClass || c === `TPB ${currentClass}` || (currentClass.startsWith('TPB') && c === currentClass);
-    });
+    let rawItems = [];
+
+    // Prioritaskan jadwal gabungan (Umum + Core Prodi) dari classSchedules
+    if (this.data.classSchedules && this.data.classSchedules.length > 0) {
+      rawItems = [...this.data.classSchedules];
+    } else {
+      rawItems = this.data.masterSchedule.filter(item => {
+        const c = (item.class_name || '').trim().toUpperCase();
+        return c === currentClass || c === `TPB ${currentClass}` || (currentClass.startsWith('TPB') && c === currentClass);
+      });
+    }
 
     if (this.data.selectedCoreClass && !this.data.currentClass.startsWith('Core ')) {
       const coreTarget = this.data.selectedCoreClass.trim().toUpperCase();
@@ -325,6 +365,16 @@ const TPBApp = {
         if (!rawItems.some(r => r.id === cm.id)) {
           rawItems.push(cm);
         }
+      });
+    }
+
+    // Filter berdasarkan Tipe Kelas Core Prodi (A / B / C / ALL)
+    if (this.data.coreFilter && this.data.coreFilter !== 'ALL') {
+      const targetFilter = this.data.coreFilter.toUpperCase();
+      rawItems = rawItems.filter(item => {
+        const isCore = item.is_core_prodi || item.category === 'Core Prodi';
+        if (!isCore) return true; // Jadwal umum selalu ditampilkan
+        return (item.core_class || '').toUpperCase() === targetFilter;
       });
     }
 
@@ -680,8 +730,14 @@ const TPBApp = {
               ${format24h(item.start_time)} - ${format24h(item.end_time)}
             </td>
             <td>
-              <div class="font-bold text-xs sm:text-sm flex items-center gap-1.5" style="color:#2C1A0E">
+              <div class="font-bold text-xs sm:text-sm flex flex-wrap items-center gap-1.5" style="color:#2C1A0E">
                 <span>${item.course_name}</span>
+                ${item.is_core_prodi || item.category === 'Core Prodi' ? `
+                  <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-xs" style="${item.core_class === 'A' ? 'background:#FEF3C7; color:#92400E; border:1px solid #FCD34D' : item.core_class === 'B' ? 'background:#D1FAE5; color:#065F46; border:1px solid #6EE7B7' : item.core_class === 'C' ? 'background:#EDE9FE; color:#5B21B6; border:1px solid #C4B5FD' : 'background:#F2E8DA; color:#5E4230; border:1px solid #E8D5C0'}">
+                    KELAS ${item.core_class || 'A/B/C'}
+                  </span>
+                  <span class="text-[10px] font-semibold text-[#8C7B6E]">(${item.prodi || item.core_prodi_name || 'Core'})</span>
+                ` : ''}
                 ${item.isAdminEdited ? `
                   <span class="text-[9px] font-bold px-1.5 py-0.2 rounded" style="background:#EDE0D0; color:#5E4230" title="Diubah oleh Admin: ${item.changed_by_name || ''} (${item.note || ''})">
                     EDITED ADMIN
@@ -830,14 +886,25 @@ const TPBApp = {
       <div class="relative glass-card p-3 rounded-xl shadow-sm border border-[#E8D5C0] hover:border-[#D4B896] transition-all ${conflictClass}" style="background:#FFFBF7">
         
         <div class="flex items-center justify-between mb-1.5">
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeClass}">
-            ${item.category || 'Kuliah'}
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeClass}">
+              ${item.category || 'Kuliah'}
+            </span>
+            ${(item.is_core_prodi || item.category === 'Core Prodi') && item.core_class ? `
+              <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow-xs" style="${item.core_class === 'A' ? 'background:#FEF3C7; color:#92400E; border:1px solid #FCD34D' : item.core_class === 'B' ? 'background:#D1FAE5; color:#065F46; border:1px solid #6EE7B7' : item.core_class === 'C' ? 'background:#EDE9FE; color:#5B21B6; border:1px solid #C4B5FD' : 'background:#F2E8DA; color:#5E4230; border:1px solid #E8D5C0'}">
+                KELAS ${item.core_class}
+              </span>
+            ` : ''}
+          </div>
           ${item.isAdminEdited ? `
             <span class="text-[9px] font-bold px-1.5 py-0.2 rounded" style="background:#EDE0D0; color:#5E4230" title="Diubah oleh Admin: ${item.changed_by_name || ''}">
               EDITED ADMIN
             </span>
-          ` : ''}
+          ` : (item.prodi || item.core_prodi_name ? `
+            <span class="text-[10px] text-[#8C7B6E] font-medium truncate max-w-[120px]" title="${item.prodi || item.core_prodi_name}">
+              ${item.prodi || item.core_prodi_name}
+            </span>
+          ` : '')}
         </div>
 
         <h4 class="font-bold text-xs sm:text-sm leading-snug mb-1.5" style="color:#2C1A0E">
