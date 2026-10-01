@@ -13,28 +13,37 @@ window.ConflictDetector = {
     if (itemA.day.toLowerCase() !== itemB.day.toLowerCase()) return false;
     if (itemA.id === itemB.id) return false;
 
-    // Smart exclusion: skip pairs that are guaranteed to have different members.
-    //
-    // Two Core Prodi or Tutorial items are attended by different students if:
-    //   1. They have different class types (A vs B vs C vs D), OR
-    //   2. They are from different prodi / core_prodi_name
-    //      (e.g. Sains Data vs Teknik Sistem Energi)
-    //
-    // A Core Prodi / Tutorial item CAN conflict with a jadwal umum because
-    // every student also attends umum.
-    const isGroupA = itemA.is_core_prodi || itemA.category === 'Core Prodi' || itemA.category === 'Tutorial';
-    const isGroupB = itemB.is_core_prodi || itemB.category === 'Core Prodi' || itemB.category === 'Tutorial';
+    // Ekstraksi Tipe Kelas (A, B, C, D, RA, RB, dll)
+    const extractClassType = (item) => {
+      if (item.core_class) return String(item.core_class).toUpperCase().trim();
+      if (item.tutorial_class) return String(item.tutorial_class).toUpperCase().trim();
+      const name = item.class_name || '';
+      const match = name.match(/kelas\s+([A-Za-z0-9]+)/i) || name.match(/\b(R[A-Z0-9]+)\b/i);
+      return match ? match[1].toUpperCase() : '';
+    };
 
-    if (isGroupA && isGroupB) {
-      // Different class type (A / B / C / D) → different group of students → no conflict
-      const classA = (itemA.core_class || itemA.tutorial_class || '').toUpperCase().trim();
-      const classB = (itemB.core_class || itemB.tutorial_class || '').toUpperCase().trim();
-      if (classA && classB && classA !== classB) return false;
+    const classA = extractClassType(itemA);
+    const classB = extractClassType(itemB);
 
-      // Different prodi → completely different students → no conflict
-      const prodiA = (itemA.prodi || itemA.core_prodi_name || '').toLowerCase().trim();
-      const prodiB = (itemB.prodi || itemB.core_prodi_name || '').toLowerCase().trim();
-      if (prodiA && prodiB && prodiA !== prodiB) return false;
+    // ATURAN 1: Jika keduanya memiliki tipe kelas berbeda (A vs B vs C vs D) -> Mahasiswa berbeda -> TIDAK BENTROK
+    if (classA && classB && classA !== classB) {
+      return false;
+    }
+
+    // Ekstraksi Program Studi Spesifik
+    const extractProdi = (item) => {
+      const p = String(item.prodi || item.core_prodi_name || '').toLowerCase();
+      if (p.includes('sains data') && !p.includes('energi')) return 'sains data';
+      if ((p.includes('sistem energi') || p.includes('energi')) && !p.includes('sains data')) return 'teknik sistem energi';
+      return p.trim();
+    };
+
+    const prodiA = extractProdi(itemA);
+    const prodiB = extractProdi(itemB);
+
+    // ATURAN 2: Jika prodi spesifik berbeda (Sains Data vs TSE) -> Anggota berbeda -> TIDAK BENTROK
+    if (prodiA && prodiB && prodiA !== prodiB) {
+      return false;
     }
 
     const startA = this.timeToMinutes(itemA.start_time);

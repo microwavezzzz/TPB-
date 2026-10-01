@@ -639,17 +639,19 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="/static/js/auth.js"></script>
-  <script src="/static/js/searchable_dropdown.js"></script>
-  <script src="/static/js/conflict.js"></script>
-  <script src="/static/js/tasks.js"></script>
-  <script src="/static/js/calendar.js"></script>
-  <script src="/static/js/search_tools.js"></script>
-  <script src="/static/js/exporter.js?v=2"></script>
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/auth.js?v=4"></script>
+  <script src="/static/js/searchable_dropdown.js?v=4"></script>
+  <script src="/static/js/conflict.js?v=4"></script>
+  <script src="/static/js/tasks.js?v=4"></script>
+  <script src="/static/js/calendar.js?v=4"></script>
+  <script src="/static/js/search_tools.js?v=4"></script>
+  <script src="/static/js/exporter.js?v=4"></script>
+  <script src="/static/js/app.js?v=4"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/static/sw.js').then(reg => {
+        reg.update();
+      }).catch(() => {});
     }
   </script>
 </body>

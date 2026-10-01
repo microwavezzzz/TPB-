@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tpb-schedule-cache-v2';
+const CACHE_NAME = 'tpb-schedule-cache-v4';
 const URLS_TO_CACHE = [
   '/',
   '/static/css/style.css',
