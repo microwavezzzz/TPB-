@@ -13,6 +13,15 @@ window.ConflictDetector = {
     if (itemA.day.toLowerCase() !== itemB.day.toLowerCase()) return false;
     if (itemA.id === itemB.id) return false;
 
+    // ATURAN KHUSUS: Studium Generale = cari seminar mandiri, waktu fleksibel
+    // → tidak pernah dianggap bentrok dengan jadwal apapun
+    const FLEKSIBEL = ['studium generale', 'stadium generale'];
+    const nameA = (itemA.course_name || '').toLowerCase();
+    const nameB = (itemB.course_name || '').toLowerCase();
+    if (FLEKSIBEL.some(k => nameA.includes(k)) || FLEKSIBEL.some(k => nameB.includes(k))) {
+      return false;
+    }
+
     // Ekstraksi Tipe Kelas (A, B, C, D, RA, RB, dll)
     const extractClassType = (item) => {
       if (item.core_class) return String(item.core_class).toUpperCase().trim();
