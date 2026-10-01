@@ -92,16 +92,31 @@ def _find_student_in_master(nim: str) -> Optional[dict]:
             return s
     return None
 
+DEFAULT_SUPER_ADMINS = ["126450036"]  # M. RANDY KURNIAWAN (Admin Utama TPB 44)
+
 def _ensure_user_exists(nim: str) -> Optional[User]:
     """
     Jika NIM ada di master Excel tapi belum pernah login,
     buat akun user otomatis dengan password default = NIM.
+    Jika NIM terdaftar sebagai Admin Utama (M. Randy Kurniawan), tetapkan role super_admin.
     """
-    existing = get_user_by_nim(nim)
+    clean_nim = nim.strip()
+    is_main_admin = clean_nim in DEFAULT_SUPER_ADMINS
+
+    existing = get_user_by_nim(clean_nim)
     if existing:
+        # Jika akun Randy sudah ada tapi rolenya masih member, otomatis naikkan ke super_admin
+        if is_main_admin and existing.role != "super_admin":
+            with Session(engine) as session:
+                db_user = session.get(User, existing.id)
+                if db_user:
+                    db_user.role = "super_admin"
+                    session.commit()
+                    session.refresh(db_user)
+                    return db_user
         return existing
 
-    master = _find_student_in_master(nim)
+    master = _find_student_in_master(clean_nim)
     if not master:
         return None  # NIM tidak terdaftar di data mahasiswa
 
@@ -109,7 +124,7 @@ def _ensure_user_exists(nim: str) -> Optional[User]:
         nim=master["nim"],
         name=master.get("name", "Mahasiswa"),
         password_hash=hash_password(master["nim"]),  # password default = NIM
-        role="member",
+        role="super_admin" if is_main_admin else "member",
         class_name=master.get("tpb_class", ""),
         prodi=master.get("prodi", ""),
     )

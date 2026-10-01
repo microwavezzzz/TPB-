@@ -145,6 +145,49 @@ def get_class_schedule(class_name: str):
         else:
             merged.append(item)
 
+    # 4. Sertakan jadwal tambahan buatan Admin (CUSTOM_*) seperti Tutorial / Responsi
+    for sid, ov in overrides.items():
+        if sid.startswith("CUSTOM_"):
+            raw_note = ov.get("note") or ""
+            course_name = "Jadwal Tambahan"
+            category = "Tutorial"
+            core_class = ""
+            prodi = ""
+            user_note = ""
+
+            if raw_note.startswith("__CUSTOM_META__"):
+                try:
+                    payload = json.loads(raw_note.replace("__CUSTOM_META__", ""))
+                    course_name = payload.get("course_name", course_name)
+                    category = payload.get("category", category)
+                    core_class = payload.get("tutorial_class", "")
+                    prodi = payload.get("prodi", "")
+                    user_note = payload.get("user_note", "")
+                except Exception:
+                    user_note = raw_note
+            else:
+                user_note = raw_note
+
+            custom_item = {
+                "id": sid,
+                "class_name": class_name,
+                "course_name": course_name,
+                "category": category,
+                "day": ov.get("day", ""),
+                "start_time": ov.get("start_time", ""),
+                "end_time": ov.get("end_time", ""),
+                "room": ov.get("room", "") or "-",
+                "lecturer": ov.get("lecturer", "") or "",
+                "note": user_note,
+                "core_class": core_class,
+                "prodi": prodi,
+                "is_core_prodi": (category in ("Core Prodi", "Tutorial") and bool(core_class or prodi)),
+                "isAdminEdited": True,
+                "changed_by_name": ov.get("changed_by_name", "Admin"),
+                "changed_at": ov.get("changed_at", "")
+            }
+            merged.append(custom_item)
+
     return {
         "class_name": class_name,
         "count": len(merged),

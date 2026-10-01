@@ -48,6 +48,7 @@ const TPBApp = {
     announcements: [],
     allUsers: [],
     coreFilter: 'ALL',
+    dayFilter: 'ALL',
     classSchedules: []
   },
 
@@ -56,6 +57,7 @@ const TPBApp = {
   STORAGE_KEY_CLASS: 'tpb_selected_class',
   STORAGE_KEY_THEME: 'tpb_dark_mode',
   STORAGE_KEY_CORE: 'tpb_selected_core_class',
+  STORAGE_KEY_VIEW: 'tpb_selected_view_mode',
 
   async init() {
     // 1. Auth Guard: Check if user is logged in
@@ -89,6 +91,36 @@ const TPBApp = {
       activeBtn.classList.add('text-white', 'shadow-sm');
     }
     this.render();
+  },
+
+  setDayFilter(day) {
+    this.data.dayFilter = day;
+    document.querySelectorAll('.day-chip').forEach(btn => {
+      btn.style.background = '#F2E8DA';
+      btn.style.color = '#5E4230';
+      btn.classList.remove('text-white', 'shadow-sm');
+    });
+    const activeChip = document.getElementById(`dayChip_${day}`);
+    if (activeChip) {
+      activeChip.style.background = '#7C5C40';
+      activeChip.style.color = '#FFFBF7';
+      activeChip.classList.add('text-white', 'shadow-sm');
+    }
+    this.renderScheduleView();
+  },
+
+  getFilteredDays() {
+    const allDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    if (!this.data.dayFilter || this.data.dayFilter === 'ALL') {
+      return allDays;
+    }
+    if (this.data.dayFilter === 'TODAY') {
+      const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const today = dayNames[new Date().getDay()];
+      const match = allDays.find(d => d.toLowerCase() === today.toLowerCase());
+      return match ? [match] : ['Senin'];
+    }
+    return allDays.filter(d => d.toLowerCase() === this.data.dayFilter.toLowerCase());
   },
 
   renderUserProfileHeader() {
@@ -332,6 +364,27 @@ const TPBApp = {
         this.dropdownInstances.core.setValue(savedCore);
       }
     }
+
+    // Default view: if on mobile and no saved preference, use 'grid' (Card View)
+    const savedView = localStorage.getItem(this.STORAGE_KEY_VIEW);
+    if (savedView) {
+      this.data.viewMode = savedView;
+    } else if (window.innerWidth < 768) {
+      this.data.viewMode = 'grid';
+    }
+
+    // Update view switcher buttons active visual
+    document.querySelectorAll('.view-btn').forEach(b => {
+      if (b.getAttribute('data-view') === this.data.viewMode) {
+        b.classList.add('text-white');
+        b.style.background = '#7C5C40';
+        b.style.color = '#FFFBF7';
+      } else {
+        b.classList.remove('text-white');
+        b.style.background = 'transparent';
+        b.style.color = '#5E4230';
+      }
+    });
   },
 
   setTimePreset(startId, endId, startVal, endVal) {
@@ -422,6 +475,7 @@ const TPBApp = {
     document.querySelectorAll('.view-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         this.data.viewMode = e.currentTarget.getAttribute('data-view');
+        localStorage.setItem(this.STORAGE_KEY_VIEW, this.data.viewMode);
         document.querySelectorAll('.view-btn').forEach(b => {
           b.classList.remove('text-white');
           b.style.background = 'transparent';
@@ -682,7 +736,7 @@ const TPBApp = {
   },
 
   renderTableView(container, schedules) {
-    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    const days = this.getFilteredDays();
     const grouped = {};
     days.forEach(day => grouped[day] = []);
 
@@ -695,19 +749,20 @@ const TPBApp = {
 
     let html = `
       <div class="glass-card rounded-2xl overflow-hidden shadow-sm border border-[#E8D5C0]">
-        <table class="schedule-table">
-          <thead>
-            <tr>
-              <th style="width: 100px;">Hari</th>
-              <th style="width: 120px;">Waktu</th>
-              <th>Mata Kuliah</th>
-              <th style="width: 110px;">Ruang</th>
-              <th>Dosen Pengampu</th>
-              <th style="width: 90px;">Kategori</th>
-              ${isAdmin ? `<th style="width: 80px; text-align:center;">Aksi</th>` : ''}
-            </tr>
-          </thead>
-          <tbody>
+        <div class="schedule-table-wrap overflow-x-auto w-full">
+          <table class="schedule-table min-w-[650px] w-full">
+            <thead>
+              <tr>
+                <th style="width: 100px;">Hari</th>
+                <th style="width: 125px;">Waktu</th>
+                <th>Mata Kuliah</th>
+                <th style="width: 110px;">Ruang</th>
+                <th>Dosen Pengampu</th>
+                <th style="width: 95px;">Kategori</th>
+                ${isAdmin ? `<th style="width: 75px; text-align:center;">Aksi</th>` : ''}
+              </tr>
+            </thead>
+            <tbody>
     `;
 
     days.forEach(day => {
@@ -719,6 +774,8 @@ const TPBApp = {
         if (item.category === 'Praktikum') badgeClass = 'badge-praktikum';
         else if (item.category === 'Core Prodi') badgeClass = 'badge-core';
         else if (item.category === 'MKWU') badgeClass = 'badge-mkwu';
+        else if (item.category === 'Tutorial') badgeClass = 'badge-tutorial';
+        else if (item.category === 'Responsi') badgeClass = 'badge-responsi';
 
         const isConflict = this.data.conflicts.has(item.id);
         const rowClass = isConflict ? 'conflict-row' : '';
@@ -774,15 +831,16 @@ const TPBApp = {
     });
 
     html += `
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     `;
     container.innerHTML = html;
   },
 
   renderGridView(container, schedules) {
-    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    const days = this.getFilteredDays();
     const grouped = {};
     days.forEach(d => grouped[d] = []);
 
@@ -794,16 +852,17 @@ const TPBApp = {
       }
     });
 
-    let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">`;
+    const isSingle = days.length === 1;
+    let html = `<div class="grid grid-cols-1 ${isSingle ? 'max-w-2xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-5'} gap-3.5">`;
 
     days.forEach(day => {
       const items = grouped[day].sort((a, b) => timeToMinutes24(a.start_time) - timeToMinutes24(b.start_time));
       
       html += `
-        <div class="flex flex-col gap-2.5 p-3 rounded-2xl border" style="background:#FFFBF7; border-color:#E8D5C0">
+        <div class="flex flex-col gap-2.5 p-3.5 rounded-2xl border" style="background:#FFFBF7; border-color:#E8D5C0">
           <div class="flex items-center justify-between pb-2 border-b border-[#E8D5C0]">
             <span class="font-bold text-xs sm:text-sm flex items-center gap-1.5" style="color:#2C1A0E">
-              <span class="w-2 h-2 rounded-full" style="background:#7C5C40"></span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background:#7C5C40"></span>
               ${day}
             </span>
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#F2E8DA; color:#5E4230">
@@ -816,7 +875,8 @@ const TPBApp = {
 
       if (items.length === 0) {
         html += `
-          <div class="py-6 text-center text-xs italic" style="color:#B89070">
+          <div class="py-8 text-center text-xs italic" style="color:#B89070">
+            <i class="fas fa-bed text-2xl mb-1.5 block opacity-60"></i>
             Libur / Tidak ada jadwal
           </div>
         `;
@@ -847,7 +907,7 @@ const TPBApp = {
             <h3 class="font-bold text-base" style="color:#2C1A0E">Jadwal Kuliah Hari Ini (${liveStatus.currentDay})</h3>
             <p class="text-xs" style="color:#8C7B6E">${items.length} mata kuliah terjadwal secara kronologis</p>
           </div>
-          <span class="text-xl">📚</span>
+          <span class="text-2xl">📚</span>
         </div>
     `;
 
@@ -877,16 +937,18 @@ const TPBApp = {
     if (item.category === 'Praktikum') badgeClass = 'badge-praktikum';
     else if (item.category === 'Core Prodi') badgeClass = 'badge-core';
     else if (item.category === 'MKWU') badgeClass = 'badge-mkwu';
+    else if (item.category === 'Tutorial') badgeClass = 'badge-tutorial';
+    else if (item.category === 'Responsi') badgeClass = 'badge-responsi';
 
     const startTime24 = format24h(item.start_time);
     const endTime24 = format24h(item.end_time);
     const isAdmin = Auth.isAdmin();
 
     return `
-      <div class="relative glass-card p-3 rounded-xl shadow-sm border border-[#E8D5C0] hover:border-[#D4B896] transition-all ${conflictClass}" style="background:#FFFBF7">
+      <div class="relative glass-card p-3.5 rounded-2xl shadow-xs border border-[#E8D5C0] hover:border-[#D4B896] transition-all ${conflictClass}" style="background:#FFFBF7">
         
-        <div class="flex items-center justify-between mb-1.5">
-          <div class="flex items-center gap-1.5">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5 flex-wrap">
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeClass}">
               ${item.category || 'Kuliah'}
             </span>
@@ -898,39 +960,42 @@ const TPBApp = {
           </div>
           ${item.isAdminEdited ? `
             <span class="text-[9px] font-bold px-1.5 py-0.2 rounded" style="background:#EDE0D0; color:#5E4230" title="Diubah oleh Admin: ${item.changed_by_name || ''}">
-              EDITED ADMIN
+              EDITED
             </span>
           ` : (item.prodi || item.core_prodi_name ? `
-            <span class="text-[10px] text-[#8C7B6E] font-medium truncate max-w-[120px]" title="${item.prodi || item.core_prodi_name}">
+            <span class="text-[10px] text-[#8C7B6E] font-medium truncate max-w-[130px]" title="${item.prodi || item.core_prodi_name}">
               ${item.prodi || item.core_prodi_name}
             </span>
           ` : '')}
         </div>
 
-        <h4 class="font-bold text-xs sm:text-sm leading-snug mb-1.5" style="color:#2C1A0E">
+        <h4 class="font-bold text-xs sm:text-sm leading-snug mb-2" style="color:#2C1A0E">
           ${item.course_name}
         </h4>
 
+        <!-- High-readability Info Chips for Mobile & Desktop -->
+        <div class="grid grid-cols-2 gap-1.5 mb-2">
+          <div class="flex items-center gap-1.5 font-mono text-[11px] font-bold px-2 py-1 rounded-lg truncate" style="background:#F2E8DA; color:#7C5C40" title="Waktu Kuliah">
+            <i class="far fa-clock text-[10px] shrink-0"></i>
+            <span class="truncate">${startTime24} - ${endTime24}</span>
+          </div>
+
+          <div class="flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded-lg truncate" style="background:#F2E8DA; color:#5E4230" title="Ruangan">
+            <i class="fas fa-map-marker-alt text-[10px] text-[#7C5C40] shrink-0"></i>
+            <span class="truncate">${item.room || 'Ruang -'}</span>
+          </div>
+        </div>
+
         <div class="space-y-1 text-xs" style="color:#5E4230">
-          <div class="flex items-center gap-1.5 font-mono font-semibold" style="color:#7C5C40">
-            <i class="far fa-clock text-[10px]"></i>
-            <span>${startTime24} - ${endTime24} WIB</span>
-          </div>
-
-          <div class="flex items-center gap-1.5 text-[11px]" style="color:#8C7B6E">
-            <i class="fas fa-map-marker-alt text-[10px]"></i>
-            <span class="truncate">${item.room || '-'}</span>
-          </div>
-
           ${item.lecturer ? `
             <div class="flex items-center gap-1.5 text-[11px]" style="color:#8C7B6E">
-              <i class="fas fa-chalkboard-teacher text-[10px]"></i>
+              <i class="fas fa-chalkboard-teacher text-[10px] shrink-0"></i>
               <span class="truncate" title="${item.lecturer}">${item.lecturer}</span>
             </div>
           ` : ''}
 
           ${item.note ? `
-            <div class="text-[10px] italic p-1 rounded bg-[#F2E8DA] text-[#5E4230]">
+            <div class="text-[10px] italic p-1.5 rounded-lg bg-[#F2E8DA] text-[#5E4230] leading-tight">
               📌 ${item.note}
             </div>
           ` : ''}
@@ -939,14 +1004,14 @@ const TPBApp = {
         <div class="mt-2.5 pt-2 border-t border-[#E8D5C0] flex items-center justify-between gap-1">
           <div>
             ${item.link ? `
-              <a href="${item.link}" target="_blank" class="px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 flex items-center gap-1">
-                <i class="fab fa-whatsapp"></i> WA
+              <a href="${item.link}" target="_blank" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 flex items-center gap-1 shadow-2xs">
+                <i class="fab fa-whatsapp"></i> Grup WA
               </a>
             ` : ''}
           </div>
 
           ${isAdmin ? `
-            <button onclick="TPBApp.openEditModal('${item.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-white shadow-sm flex items-center gap-1" style="background:#7C5C40" title="Edit Jadwal Kelas (Admin)">
+            <button onclick="TPBApp.openEditModal('${item.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-white shadow-sm flex items-center gap-1 ml-auto" style="background:#7C5C40" title="Edit Jadwal Kelas (Admin)">
               <i class="fas fa-pen text-[10px]"></i> Edit
             </button>
           ` : ''}
@@ -1761,6 +1826,108 @@ const TPBApp = {
       resultsContainer.classList.remove('hidden');
     } catch (e) {
       console.error(e);
+    }
+  },
+
+  // ─────────────────────────────────────────────
+  // ADD CLASS MODAL (Admin)
+  // ─────────────────────────────────────────────
+
+  openAddClassModal() {
+    if (!Auth.isAdmin()) {
+      alert('Hanya Admin yang dapat menambah jadwal.');
+      return;
+    }
+    // Reset semua field
+    document.getElementById('newCourseName').value = '';
+    document.getElementById('newCategory').value = 'Kuliah';
+    document.getElementById('newDay').value = 'Senin';
+    document.getElementById('newStartTime').value = '08:00';
+    document.getElementById('newEndTime').value = '09:40';
+    document.getElementById('newRoom').value = '';
+    document.getElementById('newLecturer').value = '';
+    document.getElementById('newNote').value = '';
+    document.getElementById('newTutorialClass').value = '';
+    document.getElementById('newTutorialProdi').value = '';
+    // Sembunyikan extra fields
+    document.getElementById('tutorialExtraFields').classList.add('hidden');
+
+    const modal = document.getElementById('addClassModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  },
+
+  closeAddClassModal() {
+    const modal = document.getElementById('addClassModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  },
+
+  onNewCategoryChange() {
+    const cat = document.getElementById('newCategory').value;
+    const extraFields = document.getElementById('tutorialExtraFields');
+    const showExtra = ['Tutorial', 'Core Prodi'].includes(cat);
+    if (showExtra) {
+      extraFields.classList.remove('hidden');
+    } else {
+      extraFields.classList.add('hidden');
+      document.getElementById('newTutorialClass').value = '';
+      document.getElementById('newTutorialProdi').value = '';
+    }
+  },
+
+  async saveNewClass() {
+    const courseName = document.getElementById('newCourseName').value.trim();
+    if (!courseName) {
+      alert('Nama mata kuliah / sesi wajib diisi!');
+      return;
+    }
+
+    const category    = document.getElementById('newCategory').value;
+    const day         = document.getElementById('newDay').value;
+    const startTime   = document.getElementById('newStartTime').value.trim();
+    const endTime     = document.getElementById('newEndTime').value.trim();
+    const room        = document.getElementById('newRoom').value.trim();
+    const lecturer    = document.getElementById('newLecturer').value.trim();
+    const note        = document.getElementById('newNote').value.trim();
+    const tutorClass  = document.getElementById('newTutorialClass').value.trim();
+    const tutorProdi  = document.getElementById('newTutorialProdi').value.trim();
+
+    if (!startTime || !endTime) {
+      alert('Jam mulai dan jam selesai wajib diisi!');
+      return;
+    }
+
+    try {
+      const res = await Auth.authFetch('/api/admin/schedule/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          class_name:    this.data.currentClass,
+          course_name:   courseName,
+          category:      category,
+          day:           day,
+          start_time:    startTime,
+          end_time:      endTime,
+          room:          room || null,
+          lecturer:      lecturer || null,
+          note:          note || null,
+          tutorial_class: tutorClass || null,
+          prodi:          tutorProdi || null
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Gagal menambah jadwal.');
+      }
+
+      this.closeAddClassModal();
+      await this.refreshClassData();
+      this.render();
+      alert(`Jadwal "${courseName}" berhasil ditambahkan ke ${this.data.currentClass}.`);
+    } catch (e) {
+      alert(e.message);
     }
   }
 };

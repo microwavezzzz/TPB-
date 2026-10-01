@@ -55,6 +55,20 @@ class RoleUpdateRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     nim: str
 
+class ScheduleAddRequest(BaseModel):
+    class_name: str
+    course_name: str
+    category: str = "Kuliah"
+    day: str
+    start_time: str
+    end_time: str
+    room: Optional[str] = None
+    lecturer: Optional[str] = None
+    note: Optional[str] = None
+    tutorial_class: Optional[str] = None   # A / B / C / D — tipe kelas tutorial/core
+    prodi: Optional[str] = None            # Program studi spesifik
+
+
 
 # ─────────────────────────────────────────────
 # SCHEDULE OVERRIDES
@@ -165,6 +179,67 @@ def get_edit_log(class_name: str, admin: User = Depends(require_admin)):
             ).order_by(ScheduleOverride.changed_at.desc())
         ).all()
     return {"logs": [l.model_dump() for l in logs]}
+
+
+@router.post("/schedule/add")
+def add_custom_schedule(body: ScheduleAddRequest, admin: User = Depends(require_admin)):
+    """
+    Admin: tambah jadwal baru (custom) yang tidak ada di master Excel.
+    Disimpan sebagai ScheduleOverride dengan schedule_id = CUSTOM_{uuid}.
+    Field tutorial_class dan prodi dikodekan di kolom note sebagai metadata JSON
+    agar frontend bisa pakai untuk conflict exclusion, tanpa butuh perubahan skema DB.
+    """
+    import uuid, json as _json
+
+    custom_id = f"CUSTOM_{uuid.uuid4().hex[:12].upper()}"
+
+    # Encode metadata kelas tutorial / core ke note agar bisa dibaca frontend
+    meta_parts = []
+    if body.tutorial_class:
+        meta_parts.append(f"kelas:{body.tutorial_class.upper()}")
+    if body.prodi:
+        meta_parts.append(f"prodi:{body.prodi.strip()}")
+    if body.note:
+        meta_parts.append(body.note)
+
+    full_note = " | ".join(meta_parts) if meta_parts else None
+
+    # course_name dan category disimpan di link field (sementara) — gunakan note prefix
+    # Alternatif bersih: simpan course_name + category di note dengan format khusus
+    # Format note: __META__{"course":"...", "category":"...", "tutorial_class":"...", "prodi":"..."} | <note_user>
+    meta_json = _json.dumps({
+        "course_name": body.course_name,
+        "category": body.category,
+        "tutorial_class": body.tutorial_class or "",
+        "prodi": body.prodi or "",
+        "user_note": body.note or ""
+    }, ensure_ascii=False)
+    encoded_note = f"__CUSTOM_META__{meta_json}"
+
+    new_entry = ScheduleOverride(
+        class_name=body.class_name.strip().upper(),
+        schedule_id=custom_id,
+        day=body.day,
+        start_time=body.start_time,
+        end_time=body.end_time,
+        room=body.room,
+        lecturer=body.lecturer,
+        link=None,
+        note=encoded_note,
+        changed_by_nim=admin.nim,
+        changed_by_name=admin.name,
+        is_deleted=False
+    )
+    with Session(engine) as session:
+        session.add(new_entry)
+        session.commit()
+        session.refresh(new_entry)
+
+    return {
+        "message": f"Jadwal \"{body.course_name}\" berhasil ditambahkan.",
+        "schedule_id": custom_id,
+        "added_by": admin.name
+    }
 
 
 # ─────────────────────────────────────────────

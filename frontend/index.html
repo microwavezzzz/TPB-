@@ -145,30 +145,36 @@
     <div id="conflictAlertBanner" class="p-4 rounded-2xl hidden" style="background:#FFF0EE; border:1px solid #E8B8B0; color:#8B1A1A"></div>
 
     <!-- Navigation Tabs -->
-    <div class="flex items-center gap-1 overflow-x-auto no-print pb-1" style="border-bottom:2px solid #E8D5C0">
+    <div class="tab-nav-strip flex items-center gap-1 overflow-x-auto no-print pb-1" style="border-bottom:2px solid #E8D5C0">
       <button data-tab="schedule" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 flex items-center gap-2 whitespace-nowrap transition-all"
         style="border-color:#7C5C40; color:#7C5C40">
-        <i class="fas fa-calendar-alt"></i> Jadwal TPB 44
+        <i class="fas fa-calendar-alt"></i>
+        <span class="tab-label">Jadwal</span>
       </button>
       <button data-tab="core" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
         style="color:#8C7B6E">
-        <i class="fas fa-graduation-cap"></i> Core Prodi
+        <i class="fas fa-graduation-cap"></i>
+        <span class="tab-label">Core Prodi</span>
       </button>
       <button data-tab="students" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
         style="color:#8C7B6E">
-        <i class="fas fa-users"></i> Anggota Kelas
+        <i class="fas fa-users"></i>
+        <span class="tab-label">Anggota</span>
       </button>
       <button data-tab="tasks" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
         style="color:#8C7B6E">
-        <i class="fas fa-tasks"></i> Tugas & Deadline
+        <i class="fas fa-tasks"></i>
+        <span class="tab-label">Tugas</span>
       </button>
       <button data-tab="rooms" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
         style="color:#8C7B6E">
-        <i class="fas fa-door-open"></i> Cek Ruangan
+        <i class="fas fa-door-open"></i>
+        <span class="tab-label">Ruangan</span>
       </button>
       <button data-tab="lecturers" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
         style="color:#8C7B6E">
-        <i class="fas fa-chalkboard-teacher"></i> Jadwal Dosen
+        <i class="fas fa-chalkboard-teacher"></i>
+        <span class="tab-label">Dosen</span>
       </button>
     </div>
 
@@ -215,19 +221,19 @@
           <!-- Admin Quick Action Buttons -->
           <div id="adminActionGroup" class="flex items-center gap-1.5 hidden">
             <button onclick="TPBApp.openAnnouncementModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 text-white shadow-sm" style="background:#7C5C40" title="Buat pengumuman untuk seluruh kelas">
-              <i class="fas fa-bullhorn"></i> Pengumuman
+              <i class="fas fa-bullhorn"></i> <span class="hidden sm:inline">Pengumuman</span>
             </button>
             <button id="addClassBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1" style="background:#F2E8DA; color:#5E4230" title="Tambah mata kuliah / responsi baru">
-              <i class="fas fa-plus"></i> Tambah Matkul
+              <i class="fas fa-plus"></i> <span class="hidden sm:inline">Tambah Matkul</span>
             </button>
           </div>
 
           <div class="flex items-center gap-1.5">
             <button id="exportIcsBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1" style="background:#F2E8DA; color:#5E4230" title="Download ke Google Calendar">
-              <i class="fas fa-calendar-plus" style="color:#7C5C40"></i> .ICS
+              <i class="fas fa-calendar-plus" style="color:#7C5C40"></i> <span class="hidden sm:inline">.ICS</span>
             </button>
             <button id="exportWallpaperBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1" style="background:#F2E8DA; color:#5E4230" title="Wallpaper Lockscreen">
-              <i class="fas fa-mobile-alt" style="color:#A08060"></i> Wallpaper
+              <i class="fas fa-mobile-alt" style="color:#A08060"></i> <span class="hidden sm:inline">Wallpaper</span>
             </button>
             <button id="printBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold" style="background:#F2E8DA; color:#5E4230" title="Cetak / PDF 1 Halaman">
               <i class="fas fa-print"></i>
@@ -267,6 +273,33 @@
             ⚡ Teknik Sistem Energi: Kelas A, B
           </span>
         </div>
+      </div>
+
+      <!-- Day Selector Filter Bar (Mobile & Desktop friendly) -->
+      <div id="daySelectorBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 no-print">
+        <button onclick="TPBApp.setDayFilter('ALL')" id="dayChip_ALL" class="day-chip px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shadow-sm text-white flex items-center gap-1.5" style="background:#7C5C40">
+          <i class="fas fa-calendar-alt text-[11px]"></i>
+          <span>Semua Hari</span>
+        </button>
+        <button onclick="TPBApp.setDayFilter('TODAY')" id="dayChip_TODAY" class="day-chip px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5" style="background:#F2E8DA; color:#5E4230">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Hari Ini</span>
+        </button>
+        <button onclick="TPBApp.setDayFilter('Senin')" id="dayChip_Senin" class="day-chip px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap" style="background:#F2E8DA; color:#5E4230">
+          Senin
+        </button>
+        <button onclick="TPBApp.setDayFilter('Selasa')" id="dayChip_Selasa" class="day-chip px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap" style="background:#F2E8DA; color:#5E4230">
+          Selasa
+        </button>
+        <button onclick="TPBApp.setDayFilter('Rabu')" id="dayChip_Rabu" class="day-chip px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap" style="background:#F2E8DA; color:#5E4230">
+          Rabu
+        </button>
+        <button onclick="TPBApp.setDayFilter('Kamis')" id="dayChip_Kamis" class="day-chip px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap" style="background:#F2E8DA; color:#5E4230">
+          Kamis
+        </button>
+        <button onclick="TPBApp.setDayFilter('Jumat')" id="dayChip_Jumat" class="day-chip px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap" style="background:#F2E8DA; color:#5E4230">
+          Jumat
+        </button>
       </div>
 
       <!-- Schedule Dynamic View Container -->
@@ -411,17 +444,19 @@
       </div>
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block font-bold mb-1" style="color:#5E4230">Nama Mata Kuliah / Responsi</label>
-          <input type="text" id="newCourseName" placeholder="Contoh: Responsi Fisika Dasar" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+          <label class="block font-bold mb-1" style="color:#5E4230">Nama Mata Kuliah / Sesi</label>
+          <input type="text" id="newCourseName" placeholder="Contoh: Tutorial Kalkulus, Responsi Fisika Dasar" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold mb-1" style="color:#5E4230">Kategori</label>
-            <select id="newCategory" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+            <select id="newCategory" onchange="TPBApp.onNewCategoryChange()" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
               <option value="Kuliah">Kuliah</option>
               <option value="Praktikum">Praktikum</option>
-              <option value="Core Prodi">Core Prodi</option>
+              <option value="Tutorial">Tutorial</option>
               <option value="Responsi">Responsi</option>
+              <option value="Core Prodi">Core Prodi</option>
+              <option value="MKWU">MKWU</option>
             </select>
           </div>
           <div>
@@ -432,6 +467,31 @@
             </select>
           </div>
         </div>
+
+        <!-- Kolom tambahan: muncul saat kategori Tutorial / Core Prodi dipilih -->
+        <div id="tutorialExtraFields" class="hidden rounded-xl p-3 space-y-3" style="background:#F2E8DA; border:1px solid #E8D5C0">
+          <p class="text-[10px] font-bold uppercase tracking-wide" style="color:#7C5C40">⚙️ Pengaturan Kelas Tutorial / Core Prodi</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold mb-1" style="color:#5E4230">Tipe Kelas</label>
+              <select id="newTutorialClass" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#FFFBF7; color:#2C1A0E; border:1px solid #D4B896">
+                <option value="">— Semua / Tidak Spesifik —</option>
+                <option value="A">Kelas A</option>
+                <option value="B">Kelas B</option>
+                <option value="C">Kelas C</option>
+                <option value="D">Kelas D</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold mb-1" style="color:#5E4230">Program Studi</label>
+              <input type="text" id="newTutorialProdi" placeholder="Misal: Sains Data, Teknik Sipil" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#FFFBF7; color:#2C1A0E; border:1px solid #D4B896">
+            </div>
+          </div>
+          <p class="text-[10px]" style="color:#8C7B6E">
+            Jadwal ini hanya akan tampil untuk anggota kelas dengan tipe dan prodi yang sesuai, sehingga tidak konflik dengan kelas lain.
+          </p>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold mb-1" style="color:#5E4230">Jam Mulai</label>
@@ -449,6 +509,10 @@
         <div>
           <label class="block font-bold mb-1" style="color:#5E4230">Dosen / Asprak</label>
           <input type="text" id="newLecturer" placeholder="Tim Dosen / Asprak" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
+        </div>
+        <div>
+          <label class="block font-bold mb-1" style="color:#5E4230">Catatan (Opsional)</label>
+          <input type="text" id="newNote" placeholder="Misal: Hanya untuk kelas A, wajib bawa laptop" class="w-full px-3 py-2 rounded-xl outline-none" style="background:#F2E8DA; color:#2C1A0E; border:1px solid #E8D5C0">
         </div>
       </div>
       <div class="flex items-center justify-end gap-2 pt-3" style="border-top:1px solid #E8D5C0">
