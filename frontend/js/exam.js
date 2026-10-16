@@ -735,7 +735,204 @@ window.ExamManager = {
   },
 
   printStudentExamCard() {
-    window.print();
+    const student = this.data.selectedStudent;
+    if (!student) return;
+
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+    const today = new Date();
+    const printedAt = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}, ${String(today.getHours()).padStart(2,'0')}.${String(today.getMinutes()).padStart(2,'0')} WIB`;
+
+    const rows = student.exams.map((ex, i) => {
+      const isCBT = ex.mode === 'CBT';
+      const modeColor = isCBT ? '#6D28D9' : '#B45309';
+      const modeBg   = isCBT ? '#EDE9FE' : '#FEF3C7';
+      return `
+        <tr style="border-bottom:1px solid #E8D5C0; ${i % 2 === 1 ? 'background:#FDFAF6' : 'background:#FFFFFF'}">
+          <td style="padding:8px 10px; text-align:center; font-weight:700; color:#5E4230; font-size:9pt">${i + 1}</td>
+          <td style="padding:8px 10px; font-weight:800; color:#1C0F06; font-size:9pt; line-height:1.3">${ex.course}</td>
+          <td style="padding:8px 10px; text-align:center">
+            <span style="background:${modeBg}; color:${modeColor}; font-weight:800; font-size:8pt; padding:2px 8px; border-radius:999px">${ex.mode}</span>
+          </td>
+          <td style="padding:8px 10px; font-size:8.5pt; color:#2C1A0E; font-weight:600; white-space:nowrap">${ex.date || '-'}</td>
+          <td style="padding:8px 10px; font-size:8.5pt; color:#2C1A0E; font-family:monospace; font-weight:700; white-space:nowrap">${ex.time ? ex.time + ' WIB' : '-'}</td>
+          <td style="padding:8px 10px; font-size:8.5pt; color:#2C1A0E; font-weight:600">${ex.sesi || '-'}</td>
+          <td style="padding:8px 10px; font-size:8.5pt; color:#3D2314; font-weight:700; text-align:center">${ex.seat && ex.seat !== '-' ? ex.seat : '—'}</td>
+          <td style="padding:8px 10px; font-size:8.5pt; color:#2C1A0E; font-weight:600; line-height:1.3">${ex.room || '-'}</td>
+        </tr>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kartu Ujian UTS — ${student.name}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fff;
+      color: #1C0F06;
+      padding: 14mm 14mm 10mm;
+      font-size: 9pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    @page { size: A4 portrait; margin: 0; }
+
+    .kop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #7C5C40;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .kop-title h1 { font-size: 14pt; font-weight: 900; color: #3D2314; letter-spacing: -0.3px; }
+    .kop-title p { font-size: 8pt; color: #7C5C40; font-weight: 600; margin-top: 2px; }
+    .kop-badge {
+      background: #7C5C40; color: #FFFBF7; font-weight: 900;
+      font-size: 11pt; padding: 6px 16px; border-radius: 8px; letter-spacing: 1px;
+    }
+
+    .identity {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+      background: #FDF8F2; border: 1.5px solid #D4B896; border-radius: 10px;
+      padding: 10px 14px; margin-bottom: 12px;
+    }
+    .identity-field label {
+      font-size: 7.5pt; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #8C7B6E; display: block; margin-bottom: 2px;
+    }
+    .identity-field span { font-size: 10pt; font-weight: 800; color: #1C0F06; }
+    .identity-field.nim span { font-family: monospace; font-size: 12pt; color: #7C5C40; }
+
+    table { width: 100%; border-collapse: collapse; border: 1.5px solid #D4B896; border-radius: 8px; overflow: hidden; }
+    thead tr { background: #7C5C40; }
+    thead th {
+      padding: 8px 10px; text-align: left; font-size: 8pt; font-weight: 800;
+      color: #FFFBF7; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+    }
+    thead th:nth-child(1), thead th:nth-child(3), thead th:nth-child(7) { text-align: center; }
+
+    .summary { display: flex; gap: 10px; margin-top: 10px; }
+    .summary-box {
+      flex: 1; border: 1.5px solid #D4B896; border-radius: 8px;
+      padding: 8px 12px; background: #FDF8F2;
+    }
+    .summary-box label {
+      font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #8C7B6E; display: block;
+    }
+    .summary-box span { font-size: 13pt; font-weight: 900; color: #3D2314; }
+
+    .footer { margin-top: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .footer .note { font-size: 7.5pt; color: #5E4230; max-width: 65%; line-height: 1.6; }
+    .ttd {
+      text-align: center; border: 1px solid #D4B896; border-radius: 8px;
+      padding: 8px 20px 6px; min-width: 160px;
+    }
+    .ttd p { font-size: 7.5pt; color: #5E4230; font-weight: 600; }
+    .ttd .sign-space { height: 36px; }
+    .ttd .sign-name { font-size: 7.5pt; font-weight: 800; color: #1C0F06; border-top: 1px solid #C8956A; padding-top: 4px; margin-top: 2px; }
+    .watermark { font-size: 7pt; color: #B0967E; text-align: center; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="kop">
+    <div class="kop-title">
+      <h1>KARTU UJIAN TENGAH SEMESTER</h1>
+      <p>Portal Akademik TPB ITERA &bull; Gasal TA 2026/2027 &bull; Dicetak: ${printedAt}</p>
+    </div>
+    <div class="kop-badge">UTS 2026</div>
+  </div>
+
+  <div class="identity">
+    <div class="identity-field">
+      <label>Nama Mahasiswa</label>
+      <span>${student.name}</span>
+    </div>
+    <div class="identity-field nim">
+      <label>NIM</label>
+      <span>${student.nim}</span>
+    </div>
+    <div class="identity-field">
+      <label>Program Studi</label>
+      <span>${student.prodi || '-'}</span>
+    </div>
+    <div class="identity-field">
+      <label>Kelas TPB</label>
+      <span>${student.tpb_class || '-'}</span>
+    </div>
+    <div class="identity-field">
+      <label>Fakultas</label>
+      <span>${student.fakultas || '-'}</span>
+    </div>
+    <div class="identity-field">
+      <label>Total Ujian</label>
+      <span>${student.exams.length} Mata Kuliah</span>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:4%">No</th>
+        <th>Mata Kuliah</th>
+        <th style="width:7%">Mode</th>
+        <th style="width:15%">Tanggal</th>
+        <th style="width:13%">Waktu</th>
+        <th style="width:13%">Sesi</th>
+        <th style="width:7%; text-align:center">Kursi</th>
+        <th>Ruang Ujian</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <div class="summary">
+    <div class="summary-box">
+      <label>CBT (Labkom)</label>
+      <span>${student.exams.filter(e => e.mode === 'CBT').length} Ujian</span>
+    </div>
+    <div class="summary-box">
+      <label>PBT (Ruang Kelas)</label>
+      <span>${student.exams.filter(e => e.mode === 'PBT').length} Ujian</span>
+    </div>
+    <div class="summary-box" style="flex:2">
+      <label>Ujian Pertama</label>
+      <span style="font-size:10pt">${student.exams[0]?.date || '-'} &mdash; ${student.exams[0]?.time || ''}</span>
+    </div>
+    <div class="summary-box" style="flex:2">
+      <label>Ujian Terakhir</label>
+      <span style="font-size:10pt">${student.exams[student.exams.length-1]?.date || '-'} &mdash; ${student.exams[student.exams.length-1]?.time || ''}</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="note">
+      <strong>&#9888; Perhatian:</strong> Hadir minimal <strong>15 menit</strong> sebelum ujian dimulai.<br>
+      Wajib membawa <strong>kartu identitas</strong> (KTM/KTP) dan kartu ujian ini.<br>
+      Dilarang membawa alat bantu selain yang diizinkan pengawas.<br>
+      Kartu ini dicetak dari sistem &mdash; tidak memerlukan tanda tangan manual.
+    </div>
+    <div class="ttd">
+      <p>Koordinator TPB ITERA</p>
+      <div class="sign-space"></div>
+      <div class="sign-name">Dr. Koordinator TPB</div>
+    </div>
+  </div>
+
+  <div class="watermark">
+    Portal Jadwal TPB ITERA &bull; ${student.nim} &bull; ${student.name} &bull; Dicetak otomatis ${printedAt}
+  </div>
+
+  <script>window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; }<\/script>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) { alert('Popup diblokir browser. Izinkan popup untuk mencetak kartu ujian.'); return; }
+    win.document.write(html);
+    win.document.close();
   }
 };
 
