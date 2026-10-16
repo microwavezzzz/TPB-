@@ -13,6 +13,11 @@ from backend.database import (
 )
 from backend.auth import router as auth_router, get_current_user
 from backend.admin import router as admin_router
+from backend.exam_service import (
+    get_exam_overview, search_exam_students,
+    get_student_exam_schedule, get_class_exam_schedule,
+    build_exam_data, load_exam_data
+)
 
 app = FastAPI(title="TPB Schedule Portal 2026/2027", version="2.0.0")
 
@@ -24,10 +29,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Init database on startup
+# Init database & exam data on startup
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    try:
+        load_exam_data()
+    except Exception as e:
+        print(f"Warning: Failed to load exam data on startup: {e}")
 
 # Include routers
 app.include_router(auth_router)
@@ -272,6 +281,42 @@ def get_announcements(class_name: str):
 @app.get("/api/tasks/{class_name}")
 def get_admin_tasks(class_name: str):
     return {"tasks": get_admin_tasks_for_class(class_name.strip().upper())}
+
+
+@app.get("/api/exam/overview")
+def api_exam_overview():
+    """Mengambil informasi ringkas jadwal master UTS TPB"""
+    return get_exam_overview()
+
+
+@app.get("/api/exam/search")
+def api_exam_search(q: str = Query(..., min_length=1)):
+    """Pencarian jadwal ujian berdasarkan nama atau NIM mahasiswa"""
+    return {"query": q, "results": search_exam_students(q)}
+
+
+@app.get("/api/exam/student/{nim}")
+def api_exam_student(nim: str):
+    """Mendapatkan jadwal ujian lengkap personal mahasiswa berdasarkan NIM"""
+    res = get_student_exam_schedule(nim)
+    if not res:
+        raise HTTPException(status_code=404, detail="Data jadwal ujian mahasiswa tidak ditemukan.")
+    return res
+
+
+@app.get("/api/exam/class/{class_name}")
+def api_exam_class(class_name: str):
+    """Mendapatkan jadwal ujian seluruh mahasiswa dalam 1 kelas TPB"""
+    return get_class_exam_schedule(class_name)
+
+
+@app.post("/api/exam/sync")
+def api_exam_sync(current_user: dict = Depends(get_current_user)):
+    """Sinkronisasi ulang data jadwal ujian dari spreadsheet (khusus Admin)"""
+    if current_user.get("role") not in ("admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Hanya admin yang dapat menyinkronkan jadwal ujian.")
+    data = build_exam_data()
+    return {"status": "success", "message": "Jadwal ujian berhasil disinkronkan.", "metadata": data.get("metadata")}
 
 
 @app.post("/api/sync")

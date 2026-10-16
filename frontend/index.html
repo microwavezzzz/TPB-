@@ -82,6 +82,14 @@
 
       <!-- User Profile & Controls -->
       <div class="flex items-center gap-2 no-print">
+
+        <!-- Mobile Quick UTS Search Button -->
+        <button onclick="TPBApp.setActiveTab('exam'); setTimeout(() => document.getElementById('examSearchInput')?.focus(), 100);"
+          class="lg:hidden px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition-all shadow-xs"
+          style="background:#F2E8DA; border-color:#E8D5C0; color:#5E4230" title="Cari Jadwal Ujian UTS">
+          <i class="fas fa-search text-amber-800 text-[11px]"></i>
+          <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase" style="background:#FEE2E2; color:#991B1B">UTS</span>
+        </button>
         
         <!-- User Badge & Menu -->
         <div class="relative" id="userMenuWrapper">
@@ -144,12 +152,45 @@
     <!-- Conflict Warning Alert Banner -->
     <div id="conflictAlertBanner" class="p-4 rounded-2xl hidden" style="background:#FFF0EE; border:1px solid #E8B8B0; color:#8B1A1A"></div>
 
+    <!-- Active UTS Exam Period Alert Banner -->
+    <div class="p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs border no-print"
+      style="background: linear-gradient(135deg, #FFF9F2 0%, #FDF4E7 100%); border-color: #E6C8A4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs" style="background:#7C5C40; color:#FFFBF7">
+          <i class="fas fa-file-signature text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black px-2 py-0.5 rounded-full uppercase" style="background:#FEE2E2; color:#991B1B">
+              🔥 UTS GASAL 2026/2027
+            </span>
+            <span class="text-xs font-bold" style="color:#2C1A0E">Periode Ujian Tengah Semester Sedang Berlangsung</span>
+          </div>
+          <p class="text-xs mt-0.5" style="color:#7C5C40">
+            Cari nama atau NIM kamu untuk melihat ruangan, sesi, waktu, dan nomor kursi ujian CBT maupun PBT kamu.
+          </p>
+        </div>
+      </div>
+      <button onclick="TPBApp.setActiveTab('exam')"
+        class="px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-white transition-all shadow-xs shrink-0 hover:opacity-95"
+        style="background: linear-gradient(135deg, #7C5C40 0%, #9A7050 100%)">
+        <i class="fas fa-search"></i>
+        <span>Cari Jadwal Ujian Saya</span>
+      </button>
+    </div>
+
     <!-- Navigation Tabs -->
     <div class="tab-nav-strip flex items-center gap-1 overflow-x-auto no-print pb-1" style="border-bottom:2px solid #E8D5C0">
       <button data-tab="schedule" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 flex items-center gap-2 whitespace-nowrap transition-all"
         style="border-color:#7C5C40; color:#7C5C40">
         <i class="fas fa-calendar-alt"></i>
-        <span class="tab-label">Jadwal</span>
+        <span class="tab-label">Jadwal Kuliah</span>
+      </button>
+      <button data-tab="exam" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
+        style="color:#8C7B6E">
+        <i class="fas fa-file-signature text-amber-700"></i>
+        <span class="tab-label">Jadwal Ujian</span>
+        <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase" style="background:#FEE2E2; color:#991B1B">UTS</span>
       </button>
       <button data-tab="core" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap transition-all"
         style="color:#8C7B6E">
@@ -304,6 +345,154 @@
 
       <!-- Schedule Dynamic View Container -->
       <div id="scheduleViewContainer" class="min-h-[300px]"></div>
+    </section>
+
+    <!-- TAB EXAM: JADWAL UJIAN UTS -->
+    <section id="tab_exam" class="tab-content hidden space-y-4">
+
+      <!-- Exam Banner / Subnav Strip -->
+      <div class="glass-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 border border-[#E8D5C0] no-print" style="background:#FFFBF7">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-xs" style="background:#7C5C40">
+            <i class="fas fa-file-signature text-base"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-sm sm:text-base flex items-center gap-2" style="color:#2C1A0E">
+              <span>Jadwal & Pembagian Ruang UTS TPB Gasal 2026/2027</span>
+              <span class="text-[10px] font-black px-2 py-0.5 rounded-full uppercase" style="background:#FEE2E2; color:#991B1B">
+                RESMI ITERA
+              </span>
+            </h2>
+            <p class="text-xs" style="color:#8C7B6E">
+              Data terpadu pembagian ruang Labkom CBT & PBT dari Spreadsheet TPB.
+            </p>
+          </div>
+        </div>
+
+        <!-- Subtabs: Cari Mahasiswa / TPB 44 / Master UTS -->
+        <div class="flex items-center gap-1 p-1 rounded-xl overflow-x-auto max-w-full no-scrollbar" style="background:#F2E8DA">
+          <button data-exam-subtab="personal" class="exam-subtab-btn px-3 py-1.5 text-xs font-bold rounded-lg text-white shadow-sm transition-all whitespace-nowrap shrink-0" style="background:#7C5C40">
+            <i class="fas fa-user-graduate mr-1"></i> Cari Mahasiswa
+          </button>
+          <button data-exam-subtab="class" class="exam-subtab-btn px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap shrink-0" style="background:#F2E8DA; color:#5E4230">
+            <i class="fas fa-users mr-1"></i> Kelas TPB 44
+          </button>
+          <button data-exam-subtab="master" class="exam-subtab-btn px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap shrink-0" style="background:#F2E8DA; color:#5E4230">
+            <i class="fas fa-list-alt mr-1"></i> Jadwal Keseluruhan
+          </button>
+        </div>
+      </div>
+
+      <!-- SUBTAB 1: PERSONAL SEARCH & STUDENT EXAM CARD -->
+      <div id="examPersonalSection" class="space-y-4">
+        
+        <!-- Search Box Container -->
+        <div id="examSearchWrapper" class="relative max-w-2xl mx-auto w-full no-print">
+          <div class="relative flex items-center">
+            <i class="fas fa-search absolute left-3.5 sm:left-4 text-xs sm:text-sm" style="color:#7C5C40"></i>
+            <input type="text" id="examSearchInput"
+              placeholder="Cari nama atau 9-digit NIM... (contoh: Ribka)"
+              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
+              class="w-full pl-9 sm:pl-11 pr-20 sm:pr-28 py-3 sm:py-3.5 text-xs sm:text-sm rounded-2xl outline-none font-medium shadow-sm transition-all"
+              style="background:#FFFBF7; color:#2C1A0E; border:2px solid #E8D5C0"
+              onfocus="this.style.borderColor='#7C5C40'" onblur="this.style.borderColor='#E8D5C0'">
+            <button onclick="ExamManager.loadMyExamSchedule()"
+              class="absolute right-1.5 sm:right-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-bold rounded-xl text-white shadow-xs transition-all hover:opacity-90 whitespace-nowrap flex items-center gap-1"
+              style="background:#7C5C40" title="Buka Jadwal Saya yang Sedang Login">
+              <i class="fas fa-user-check text-[10px]"></i>
+              <span><span class="hidden sm:inline">Jadwal </span>Saya</span>
+            </button>
+          </div>
+
+          <!-- Autocomplete Dropdown List -->
+          <div id="examSearchResults" class="absolute left-0 right-0 top-full mt-2 rounded-2xl shadow-2xl border max-h-80 overflow-y-auto hidden z-50 divide-y divide-[#E8D5C0]"
+            style="background:#FFFBF7; border-color:#E8D5C0">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <!-- Quick Suggestion Chips -->
+          <div class="flex items-center justify-center gap-1.5 mt-2.5 flex-wrap text-xs" style="color:#8C7B6E">
+            <span class="text-[11px] font-bold">Coba cari:</span>
+            <button onclick="ExamManager.loadStudentSchedule('126450004')" class="px-2 py-0.5 rounded-lg border hover:bg-[#EDE0D0] transition-colors" style="background:#F2E8DA; border-color:#E8D5C0; color:#5E4230">
+              Ribka Wahyuni (TPB 44)
+            </button>
+            <button onclick="ExamManager.loadStudentSchedule('126210001')" class="px-2 py-0.5 rounded-lg border hover:bg-[#EDE0D0] transition-colors" style="background:#F2E8DA; border-color:#E8D5C0; color:#5E4230">
+              Hanif Shafwan
+            </button>
+            <button onclick="ExamManager.loadStudentSchedule('126220001')" class="px-2 py-0.5 rounded-lg border hover:bg-[#EDE0D0] transition-colors" style="background:#F2E8DA; border-color:#E8D5C0; color:#5E4230">
+              Raymondo Cicilio
+            </button>
+          </div>
+        </div>
+
+        <!-- Student Exam Card Container -->
+        <div id="examStudentCardContainer" class="space-y-4">
+          <!-- Default welcome placeholder if no student selected yet -->
+          <div class="glass-card p-8 sm:p-12 rounded-3xl border border-[#E8D5C0] text-center max-w-xl mx-auto space-y-3" style="background:#FFFBF7">
+            <div class="w-16 h-16 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl shadow-sm"
+              style="background: linear-gradient(135deg, #7C5C40 0%, #C8956A 100%)">
+              <i class="fas fa-id-card"></i>
+            </div>
+            <h3 class="font-black text-base sm:text-lg" style="color:#2C1A0E">Cari Jadwal Ujian UTS Kamu</h3>
+            <p class="text-xs sm:text-sm text-stone-600 max-w-md mx-auto">
+              Ketik nama lengkap atau NIM pada kotak pencarian di atas untuk melihat ruangan, sesi, waktu, dan nomor kursi ujian CBT maupun PBT kamu.
+            </p>
+            <div class="pt-2 flex items-center justify-center gap-2">
+              <button onclick="ExamManager.switchSubTab('class')" class="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs" style="background:#7C5C40">
+                <i class="fas fa-users mr-1"></i> Lihat Daftar TPB 44
+              </button>
+              <button onclick="ExamManager.switchSubTab('master')" class="px-4 py-2 rounded-xl text-xs font-bold border" style="background:#F2E8DA; border-color:#E8D5C0; color:#5E4230">
+                <i class="fas fa-table mr-1"></i> Jadwal Keseluruhan
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SUBTAB 2: CLASS TPB 44 ROSTER -->
+      <div id="examClassSection" class="hidden space-y-4">
+        <div id="examClassRosterContainer"></div>
+      </div>
+
+      <!-- SUBTAB 3: MASTER EXAMS TABLE -->
+      <div id="examMasterSection" class="hidden space-y-4">
+        <div class="glass-card p-4 sm:p-5 rounded-2xl border border-[#E8D5C0] shadow-sm space-y-3" style="background:#FFFBF7">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base" style="color:#2C1A0E">
+                Informasi Pelaksanaan UTS Gasal TPB TA 2026/2027
+              </h3>
+              <p class="text-xs" style="color:#8C7B6E">Tahap Persiapan Bersama (TPB) Institut Teknologi Sumatera</p>
+            </div>
+            <a href="https://docs.google.com/spreadsheets/d/1LWvvQzJ28fH4Crgq18B3Kp6Hn9EqmxTC2YT-NFcghIo/edit?pli=1&gid=1609636685#gid=1609636685"
+              target="_blank" rel="noopener noreferrer"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border text-emerald-800 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 transition-colors shrink-0">
+              <i class="fas fa-external-link-alt text-[10px]"></i>
+              <span>Buka Google Spreadsheet Resmi</span>
+            </a>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-[#E8D5C0]">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead style="background:#EDE0D0; color:#5E4230">
+                <tr>
+                  <th class="p-3 text-center w-12 font-bold">No</th>
+                  <th class="p-3 font-bold">Mata Kuliah Ujian</th>
+                  <th class="p-3 font-bold">Mode</th>
+                  <th class="p-3 font-bold">Hari / Tanggal & Waktu</th>
+                  <th class="p-3 font-bold">Ruang Ujian</th>
+                  <th class="p-3 font-bold">Status</th>
+                </tr>
+              </thead>
+              <tbody id="examMasterTableBody" style="background:#FFFBF7">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- TAB 2: CORE PRODI -->
@@ -646,6 +835,7 @@
   <script src="/static/js/calendar.js?v=4"></script>
   <script src="/static/js/search_tools.js?v=4"></script>
   <script src="/static/js/exporter.js?v=4"></script>
+  <script src="/static/js/exam.js?v=5"></script>
   <script src="/static/js/app.js?v=4"></script>
   <script>
     if ('serviceWorker' in navigator) {

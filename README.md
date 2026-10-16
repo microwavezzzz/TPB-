@@ -24,6 +24,17 @@ Aplikasi web portal jadwal terpusat khusus mahasiswa **TPB 44 Institut Teknologi
 - Seluruh anggota TPB 44 yang membuka portal langsung melihat jadwal terbaru yang telah diperbarui tanpa perlu mengedit secara manual.
 - Riwayat catatan admin (alasan diundur / ruang baru) tertampil jelas pada kartu jadwal.
 
+### 📝 Jadwal & Pembagian Ruang Ujian UTS Gasal 2026/2027
+- **Pencarian Nama / NIM Mahasiswa**: Mahasiswa cukup mengetik nama atau NIM untuk langsung menampilkan jadwal lengkap ujian personal mereka.
+- **Informasi Lengkap Sesi & Ruangan**:
+  - Mata Kuliah & Mode Ujian (**CBT di Labkom** / **PBT di Ruang Kelas**)
+  - Tanggal, Sesi, & Waktu Pelaksanaan
+  - **Lokasi Ruang Ujian** (misal Labtek 1, Labtek 3, Labtek 5)
+  - **Nomor Kursi / Meja Ujian** resmi
+- **Sinkronisasi dari Google Sheets Resmi**: Data otomatis disinkronkan langsung dari spreadsheet resmi pembagian ruang UTS TPB ITERA.
+- **Ekspor Kalender (.ICS) & Cetak Kartu Ujian**: Mahasiswa dapat mengunduh seluruh jadwal sesi ke Google/Apple Calendar serta mencetak kartu ujian dalam format siap cetak.
+- **Jadwal Keseluruhan & Roster TPB 44**: Tersedia tabel master 14 mata kuliah UTS dan daftar mahasiswa kelas TPB 44.
+
 ---
 
 ## 🛠️ Menetapkan Admin / Ketua Kelas

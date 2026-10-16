@@ -1017,3 +1017,31 @@ select option {
     color: #3D2314;
   }
 }
+
+/* --- Exam Schedule Styles --- */
+.exam-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.exam-card:hover {
+  transform: translateY(-1px);
+}
+.exam-search-item:hover {
+  background-color: #F2E8DA !important;
+}
+.exam-search-item:focus {
+  background-color: #EDE0D0 !important;
+}
+
+@media print {
+  #tab_exam:not(.hidden) {
+    display: block !important;
+  }
+  .exam-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border: 1px solid #7C5C40 !important;
+    background: #FFFBF7 !important;
+    margin-bottom: 8px !important;
+    padding: 8px 12px !important;
+  }
+}

@@ -553,6 +553,14 @@ const TPBApp = {
     if (tab === 'tasks') this.renderTasks();
     if (tab === 'students') this.renderClassmates();
     if (tab === 'core') this.renderCoreCatalog();
+    if (tab === 'exam' && window.ExamManager) {
+      if (!window.ExamManager.data.selectedStudent) {
+        const u = this.data.currentUser;
+        if (u && u.nim) {
+          window.ExamManager.loadStudentSchedule(u.nim, false);
+        }
+      }
+    }
   },
 
   render() {
@@ -1810,14 +1818,21 @@ const TPBApp = {
         let html = '';
         results.forEach(s => {
           html += `
-            <div class="p-2.5 hover:bg-[#F2E8DA] cursor-pointer border-b border-[#E8D5C0] flex items-center justify-between text-xs">
+            <div onclick="ExamManager.loadStudentSchedule('${s.nim}'); document.getElementById('studentSearchResults').classList.add('hidden');"
+              class="p-2.5 hover:bg-[#F2E8DA] cursor-pointer border-b border-[#E8D5C0] flex items-center justify-between text-xs transition-colors">
               <div>
                 <p class="font-bold" style="color:#2C1A0E">${s.name}</p>
-                <p class="text-[11px]" style="color:#8C7B6E">NIM: ${s.nim} • ${s.prodi}</p>
+                <p class="text-[11px]" style="color:#8C7B6E">NIM: <span class="font-mono font-bold">${s.nim}</span> • ${s.prodi}</p>
               </div>
-              <span class="text-xs font-bold px-2 py-0.5 rounded" style="background:#F2E8DA; color:#7C5C40">
-                ${s.tpb_class || 'TPB -'}
-              </span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="ExamManager.loadStudentSchedule('${s.nim}'); event.stopPropagation();"
+                  class="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-xs" style="background:#7C5C40" title="Buka Jadwal Ujian UTS">
+                  <i class="fas fa-file-signature text-[9px] mr-1"></i>UTS
+                </button>
+                <span class="text-xs font-bold px-2 py-0.5 rounded" style="background:#F2E8DA; color:#7C5C40">
+                  ${s.tpb_class || 'TPB -'}
+                </span>
+              </div>
             </div>
           `;
         });
